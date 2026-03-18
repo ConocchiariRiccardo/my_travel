@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+//Questo file è creato automaticamente da Flutter
+// lo dobbiamo cancellare e sostiruirlo con il nostro codice
+
 void main() {
   runApp(const MyApp());
 }
@@ -51,6 +54,8 @@ class MyHomePage extends StatefulWidget {
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
+
+
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -120,3 +125,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+
+
