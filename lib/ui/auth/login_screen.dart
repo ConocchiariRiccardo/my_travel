@@ -52,6 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
             TextField(
               controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
               decoration: const InputDecoration(
                 labelText: "Email",
                 border: OutlineInputBorder(),
