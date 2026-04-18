@@ -50,3 +50,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+firebase_auth: ^5.7.0
+google_sign_in: ^6.2.1
