@@ -68,7 +68,7 @@ class AuthService {
       rethrow;
     }
   }
-
+ 
   // =========================
   // LOGOUT
   // =========================
@@ -76,11 +76,11 @@ class AuthService {
     await _firebaseAuth.signOut();
     await GoogleSignIn().signOut();
   }
-
+*/
   // =========================
   // STREAM UTENTE (LOGIN STATE)
   // =========================
   Stream<User?> get userChanges =>
       _firebaseAuth.authStateChanges();
-      */
+      
 }
