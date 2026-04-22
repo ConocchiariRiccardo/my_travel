@@ -9,12 +9,9 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-
   final AuthService _authService = AuthService();
-
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   bool isLoading = false;
 
   void register() async {
@@ -26,7 +23,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         passwordController.text.trim(),
       );
 
-      Navigator.pop(context); // torna al login
+      // Dopo la registrazione torna al login
+      Navigator.pop(context);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Errore registrazione: $e")),
@@ -45,7 +44,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
@@ -53,9 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-
             const SizedBox(height: 20),
-
             TextField(
               controller: passwordController,
               obscureText: true,
@@ -64,9 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-
             const SizedBox(height: 30),
-
             isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
