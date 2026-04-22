@@ -1,56 +1,52 @@
 name: my_travel
-description: "A new Flutter project."
+description: "MyTravel - Gestionale trasferte per professionisti"
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.1
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.8
+  # --- Firebase ---
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
 
-  # Firebase
-  firebase_core: ^3.0.0
-  firebase_auth: ^5.0.0
-  cloud_firestore: ^5.0.0
-
-  # Navigazione
-  go_router: ^14.0.0
-
-  # State management
+  # --- State Management ---
   provider: ^6.0.0
 
-  # Calendario
-  table_calendar: ^3.0.9
+  # --- Navigazione ---
+  go_router: ^14.0.0
 
-  # Immagini con cache
-  cached_network_image: ^3.3.0
+  # --- UI ---
+  cupertino_icons: ^1.0.8
+  table_calendar: ^3.1.2
+  cached_network_image: ^3.4.1
 
-  # PDF
-  pdf: ^3.10.0
-  printing: ^5.12.0
+  # --- Nativi ---
+  image_picker: ^1.1.2
+  google_maps_flutter: ^2.9.0
+  flutter_local_notifications: ^17.2.4
+  geolocator: ^13.0.2
+  url_launcher: ^6.3.1
 
-  # Notifiche locali
-  flutter_local_notifications: ^17.0.0
+  # --- PDF ---
+  pdf: ^3.11.1
+  printing: ^5.13.2
 
-  # Camera e galleria per scontrini
-  image_picker: ^1.0.0
-
-  # Google Maps
-  google_maps_flutter: ^2.5.0
-  google_sign_in: ^6.2.1
+  # --- Utility ---
+  intl: ^0.19.0
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
-
-firebase_auth: ^5.7.0
-# google_sign_in: ^6.2.1
+  assets:
+    - assets/images/
