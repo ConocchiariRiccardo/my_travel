@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-import 'firebase_options.dart';          
+import 'firebase_options.dart';
 import 'ui/auth/auth_view_model.dart';
+import 'ui/home/home_view_model.dart';
 import 'ui/auth/login_screen.dart';
 import 'ui/auth/register_screen.dart';
 import 'ui/home/home_screen.dart';
+import 'ui/trips/add_trip_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, 
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Inizializza le localizzazioni italiane per le date
+  await initializeDateFormatting('it_IT', null);
   runApp(const MyTravelApp());
 }
 
@@ -25,6 +28,7 @@ class MyTravelApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => HomeViewModel()),
       ],
       child: Builder(
         builder: (context) {
@@ -34,10 +38,8 @@ class MyTravelApp extends StatelessWidget {
             initialLocation: '/login',
             redirect: (context, state) {
               final isLoggedIn = authViewModel.isAuthenticated;
-              final isOnAuthPage =
-                  state.matchedLocation == '/login' ||
+              final isOnAuthPage = state.matchedLocation == '/login' ||
                   state.matchedLocation == '/register';
-
               if (!isLoggedIn && !isOnAuthPage) return '/login';
               if (isLoggedIn && isOnAuthPage) return '/home';
               return null;
@@ -45,22 +47,28 @@ class MyTravelApp extends StatelessWidget {
             routes: [
               GoRoute(
                 path: '/login',
-                builder: (context, state) => const LoginScreen(),
+                builder: (_, __) => const LoginScreen(),
               ),
               GoRoute(
                 path: '/register',
-                builder: (context, state) => const RegisterScreen(),
+                builder: (_, __) => const RegisterScreen(),
               ),
               GoRoute(
                 path: '/home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (_, __) => const HomeScreen(),
               ),
+              GoRoute(
+                path: '/add-trip',
+                builder: (_, __) => const AddTripScreen(),
+              ),
+              // Aggiungeremo /trip/:id, /calendar, /profile nelle prossime fasi
             ],
           );
 
           return MaterialApp.router(
             title: 'MyTravel',
             debugShowCheckedModeBanner: false,
+            locale: const Locale('it', 'IT'),
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFF1E3A8A),
