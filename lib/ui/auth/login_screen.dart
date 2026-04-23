@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../data/services/auth_services.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'auth_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,251 +11,265 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = AuthService();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool isLoading = false;
-  bool isGoogleLoading = false;
+  // Controllers per leggere il testo inserito nei campi
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  void login() async {
-    setState(() => isLoading = true);
-    try {
-      await _authService.signInWithEmail(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-      );
-      Navigator.pushReplacementNamed(context, '/home');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Errore login: $e")),
-      );
-    }
-    setState(() => isLoading = false);
+  // Chiave per validare il form
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // Controlla se la password è visibile o nascosta
+  bool _isPasswordVisible = false;
+
+  @override
+  void dispose() {
+    // Libera la memoria quando la schermata viene distrutta
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
-  void loginWithGoogle() async {
-    setState(() => isGoogleLoading = true);
-    try {
-      final user = await _authService.signInWithGoogle();
-      if (user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (e) {
+  // Chiamato quando l'utente preme "Accedi"
+  Future<void> _handleLogin() async {
+    // Prima valida i campi del form
+    if (!_formKey.currentState!.validate()) return;
+
+    final authViewModel = context.read<AuthViewModel>();
+    final success = await authViewModel.login(
+      _emailController.text,
+      _passwordController.text,
+    );
+
+    // Se non siamo più montati nel widget tree, usciamo
+    if (!mounted) return;
+
+    if (!success && authViewModel.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Errore Google login: $e")),
+        SnackBar(
+          content: Text(authViewModel.errorMessage!),
+          backgroundColor: Colors.red.shade700,
+        ),
       );
     }
-    setState(() => isGoogleLoading = false);
+    // Se success == true, il GoRouter redirect gestisce
+    // automaticamente il passaggio a /home
+  }
+
+  // Chiamato quando l'utente preme "Accedi con Google"
+  Future<void> _handleGoogleLogin() async {
+    final authViewModel = context.read<AuthViewModel>();
+    final success = await authViewModel.loginWithGoogle();
+
+    if (!mounted) return;
+
+    if (!success && authViewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authViewModel.errorMessage!),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Leggiamo isLoading dal ViewModel per mostrare/nascondere
+    // il CircularProgressIndicator
+    final isLoading = context.watch<AuthViewModel>().isLoading;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 60),
 
-              const SizedBox(height: 40),
+                // --- Logo e Titolo ---
+                const Icon(
+                  Icons.flight_takeoff_rounded,
+                  size: 72,
+                  color: Color(0xFF1E3A8A),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'MyTravel',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Gestisci le tue trasferte in modo smart',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
 
-              // Logo e titolo
-              Center(
-                child: Column(
+                const SizedBox(height: 48),
+
+                // --- Campo Email ---
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Inserisci la tua email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Formato email non valido';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // --- Campo Password ---
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: !_isPasswordVisible,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleLogin(),
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Inserisci la tua password';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                // --- Bottone Accedi ---
+                FilledButton(
+                  onPressed: isLoading ? null : _handleLogin,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Accedi',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // --- Divider "oppure" ---
+                Row(
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.flight_takeoff,
-                        color: Colors.white,
-                        size: 44,
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'oppure',
+                        style: TextStyle(color: Colors.grey.shade500),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "MyTravel",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
-                      ),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // --- Bottone Google ---
+                OutlinedButton.icon(
+                  onPressed: isLoading ? null : _handleGoogleLogin,
+                  icon: const Icon(
+                    Icons.g_mobiledata_rounded,
+                    size: 26,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                  label: const Text(
+                    'Accedi con Google',
+                    style: TextStyle(color: Color(0xFF1E3A8A)),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Color(0xFF1E3A8A)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Gestisci i tuoi viaggi di lavoro",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // --- Link a Registrazione ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Non hai un account? ',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    GestureDetector(
+                      onTap: () => context.go('/register'),
+                      child: const Text(
+                        'Registrati',
+                        style: TextStyle(
+                          color: Color(0xFF1E3A8A),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 50),
-
-              // Campo email
-              const Text(
-                "Email",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: Color(0xFF1E3A8A),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  hintText: "es. mario.rossi@azienda.com",
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Campo password
-              const Text(
-                "Password",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: Color(0xFF1E3A8A),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: "Inserisci la password",
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Bottone login
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E3A8A),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "Accedi",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Divisore
-              Row(
-                children: const [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      "oppure",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Bottone Google
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: isGoogleLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : OutlinedButton.icon(
-                        onPressed: loginWithGoogle,
-                        icon: Image.network(
-                          'https://www.google.com/favicon.ico',
-                          width: 20,
-                          height: 20,
-                        ),
-                        label: const Text(
-                          "Continua con Google",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Link registrazione
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
-                  child: const Text.rich(
-                    TextSpan(
-                      text: "Non hai un account? ",
-                      style: TextStyle(color: Colors.grey),
-                      children: [
-                        TextSpan(
-                          text: "Registrati",
-                          style: TextStyle(
-                            color: Color(0xFF1E3A8A),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
