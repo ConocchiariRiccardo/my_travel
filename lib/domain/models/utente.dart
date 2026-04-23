@@ -1,15 +1,30 @@
-class Utente{
-  final String id;   //id univoco dell'utente
-  final String nome;   //nome visualizzato dell'utente
-  final String email;   //email per l'autenticazione dell'utente
-  //final String password;   //password per l'autenticazione dell'utente
-  final String? immagineProfilo;   //per la foto profilo personalizzata
+class Utente {
+  final String id;
+  final String email;
+  final String? nomeCompleto;
+  final String? fotoProfiloUrl;
 
-  Utente({
+  const Utente({
     required this.id,
-    required this.nome,
     required this.email,
-    //required this.password,
-    this.immagineProfilo,
+    this.nomeCompleto,
+    this.fotoProfiloUrl,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'nomeCompleto': nomeCompleto,
+      'fotoProfiloUrl': fotoProfiloUrl,
+    };
+  }
+
+  factory Utente.fromJson(String id, Map<String, dynamic> json) {
+    return Utente(
+      id: id,
+      email: json['email'] as String,
+      nomeCompleto: json['nomeCompleto'] as String?,
+      fotoProfiloUrl: json['fotoProfiloUrl'] as String?,
+    );
+  }
 }
