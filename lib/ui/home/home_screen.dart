@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../auth/auth_view_model.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('MyTravel'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<AuthViewModel>().logout(),
+          ),
+        ],
+      ),
+      body: const Center(
         child: Text(
-          'MyTravel Home',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          'Home — in costruzione 🚧',
+          style: TextStyle(fontSize: 18),
         ),
       ),
     );
