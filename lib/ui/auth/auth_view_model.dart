@@ -11,6 +11,7 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _authService.currentUser != null;
+  User? get currentUser => _authService.currentUser;
 
   AuthViewModel() {
     _authService.authStateChanges.listen((_) {
