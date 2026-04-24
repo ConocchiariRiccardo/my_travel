@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'firebase_options.dart';
 import 'ui/auth/auth_view_model.dart';
 import 'ui/home/home_view_model.dart';
@@ -69,6 +69,15 @@ class MyTravelApp extends StatelessWidget {
             title: 'MyTravel',
             debugShowCheckedModeBanner: false,
             locale: const Locale('it', 'IT'),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('it', 'IT'),
+              Locale('en', 'US'),
+            ],
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFF1E3A8A),
