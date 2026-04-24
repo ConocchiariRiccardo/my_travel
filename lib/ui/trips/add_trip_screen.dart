@@ -20,33 +20,33 @@ class _AddTripScreenState extends State<AddTripScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _destinazioneController = TextEditingController();
-  final _nuovaAttivitaController = TextEditingController();
-  final _uuid = const Uuid();
+  final _attivitaController = TextEditingController();
   final _tripService = TripService();
+  final _uuid = const Uuid();
 
   DateTime? _dataInizio;
   DateTime? _dataFine;
   final List<Attivita> _attivita = [];
-  bool _isSaving = false;
+  bool _isLoading = false;
 
-  final _dateFormat = DateFormat('dd/MM/yyyy', 'it_IT');
+  final DateFormat _dateFormat = DateFormat('dd MMMM yyyy', 'it_IT');
 
   @override
   void dispose() {
     _nomeController.dispose();
     _destinazioneController.dispose();
-    _nuovaAttivitaController.dispose();
+    _attivitaController.dispose();
     super.dispose();
   }
 
-  // Apre il date picker e salva la data scelta
+  // Apre il DatePicker e salva la data selezionata
   Future<void> _selezionaData({required bool isInizio}) async {
     final oggi = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: isInizio ? (_dataInizio ?? oggi) : (_dataFine ?? oggi),
+      initialDate: isInizio ? oggi : (_dataInizio ?? oggi),
       firstDate: oggi,
-      lastDate: DateTime(oggi.year + 5),
+      lastDate: DateTime(oggi.year + 3),
       locale: const Locale('it', 'IT'),
       builder: (context, child) {
         return Theme(
@@ -65,7 +65,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
     setState(() {
       if (isInizio) {
         _dataInizio = picked;
-        // Se la data fine è prima della nuova data inizio, resettiamola
+        // Se la data di fine è precedente alla nuova data di inizio, resettala
         if (_dataFine != null && _dataFine!.isBefore(picked)) {
           _dataFine = null;
         }
@@ -77,7 +77,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
 
   // Aggiunge un'attività alla lista locale
   void _aggiungiAttivita() {
-    final testo = _nuovaAttivitaController.text.trim();
+    final testo = _attivitaController.text.trim();
     if (testo.isEmpty) return;
 
     setState(() {
@@ -87,16 +87,17 @@ class _AddTripScreenState extends State<AddTripScreen> {
           nome: testo,
         ),
       );
-      _nuovaAttivitaController.clear();
+      _attivitaController.clear();
     });
   }
 
   // Rimuove un'attività dalla lista locale
-  void _rimuoviAttivita(int index) {
-    setState(() => _attivita.removeAt(index));
+  void _rimuoviAttivita(String id) {
+    setState(() {
+      _attivita.removeWhere((a) => a.id == id);
+    });
   }
 
-  // Salva il viaggio su Firestore
   Future<void> _salvaViaggio() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -110,13 +111,13 @@ class _AddTripScreenState extends State<AddTripScreen> {
       return;
     }
 
-    setState(() => _isSaving = true);
+    setState(() => _isLoading = true);
 
     try {
       final userId = context.read<AuthViewModel>().currentUser!.uid;
 
       final nuovoViaggio = Viaggio(
-        id: '', // Firestore assegnerà l'ID reale
+        id: '', // Firestore assegnerà l'id reale
         userId: userId,
         nome: _nomeController.text.trim(),
         destinazione: _destinazioneController.text.trim(),
@@ -124,10 +125,10 @@ class _AddTripScreenState extends State<AddTripScreen> {
         dataFine: _dataFine!,
       );
 
-      // Salva il viaggio e ottieni l'ID generato
+      // Salva il viaggio e ottieni l'id generato da Firestore
       final viaggioId = await _tripService.creaViaggio(userId, nuovoViaggio);
 
-      // Salva le attività come sub-collection
+      // Salva le attività nella sub-collection
       for (final attivita in _attivita) {
         await _tripService.aggiungiAttivita(userId, viaggioId, attivita);
       }
@@ -136,7 +137,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Viaggio creato con successo! 🎉'),
+          content: Text('Viaggio creato con successo! ✈️'),
           backgroundColor: Colors.green,
         ),
       );
@@ -151,273 +152,234 @@ class _AddTripScreenState extends State<AddTripScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text('Nuovo Viaggio'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.go('/home'),
+          onPressed: () => context.pop(),
         ),
         actions: [
-          TextButton(
-            onPressed: _isSaving ? null : _salvaViaggio,
-            child: _isSaving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton(
+              onPressed: _isLoading ? null : _salvaViaggio,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Salva',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  )
-                : const Text(
-                    'Salva',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- Sezione Info Base ---
-              _SectionTitle(title: 'Informazioni viaggio'),
-              const SizedBox(height: 12),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // --- Sezione Informazioni Base ---
+            _buildSectionTitle('Informazioni viaggio'),
+            const SizedBox(height: 12),
 
-              TextFormField(
-                controller: _nomeController,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Nome viaggio',
-                  hintText: 'es. Conferenza Milano',
-                  prefixIcon: Icon(Icons.work_outline_rounded),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+            _buildCard(
+              children: [
+                TextFormField(
+                  controller: _nomeController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome viaggio',
+                    hintText: 'es. Trasferta Milano Q1',
+                    prefixIcon: Icon(Icons.work_outline),
+                    border: InputBorder.none,
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Campo obbligatorio'
+                      : null,
                 ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Campo obbligatorio' : null,
-              ),
-
-              const SizedBox(height: 14),
-
-              TextFormField(
-                controller: _destinazioneController,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Destinazione',
-                  hintText: 'es. Milano, Roma...',
-                  prefixIcon: Icon(Icons.location_on_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                const Divider(height: 1),
+                TextFormField(
+                  controller: _destinazioneController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'Destinazione',
+                    hintText: 'es. Milano, Roma, Berlino',
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                    border: InputBorder.none,
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Campo obbligatorio'
+                      : null,
                 ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Campo obbligatorio' : null,
-              ),
+              ],
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-              // --- Sezione Date ---
-              _SectionTitle(title: 'Date'),
-              const SizedBox(height: 12),
+            // --- Sezione Date ---
+            _buildSectionTitle('Date'),
+            const SizedBox(height: 12),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _DatePickerField(
-                      label: 'Data inizio',
-                      data: _dataInizio,
-                      dateFormat: _dateFormat,
-                      onTap: () => _selezionaData(isInizio: true),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _DatePickerField(
-                      label: 'Data fine',
-                      data: _dataFine,
-                      dateFormat: _dateFormat,
-                      onTap: () => _selezionaData(isInizio: false),
-                    ),
-                  ),
-                ],
-              ),
+            _buildCard(
+              children: [
+                _buildDateRow(
+                  label: 'Data inizio',
+                  icon: Icons.flight_takeoff_rounded,
+                  data: _dataInizio,
+                  onTap: () => _selezionaData(isInizio: true),
+                ),
+                const Divider(height: 1),
+                _buildDateRow(
+                  label: 'Data fine',
+                  icon: Icons.flight_land_rounded,
+                  data: _dataFine,
+                  onTap: () => _selezionaData(isInizio: false),
+                ),
+              ],
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-              // --- Sezione Attività ---
-              _SectionTitle(title: 'Attività pianificate (opzionale)'),
-              const SizedBox(height: 12),
+            // --- Sezione Attività ---
+            _buildSectionTitle('Attività pianificate (opzionale)'),
+            const SizedBox(height: 12),
 
-              // Campo input nuova attività
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _nuovaAttivitaController,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _aggiungiAttivita(),
-                      decoration: const InputDecoration(
-                        labelText: 'Aggiungi attività',
-                        hintText: 'es. Riunione ore 10:00',
-                        prefixIcon: Icon(Icons.checklist_rounded),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
+            // Campo aggiunta attività
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _attivitaController,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: 'Aggiungi un\'attività...',
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _aggiungiAttivita,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A8A),
-                      shape: RoundedRectangleBorder(
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                      padding: const EdgeInsets.all(16),
                     ),
-                    child: const Icon(Icons.add),
+                    onSubmitted: (_) => _aggiungiAttivita(),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  onPressed: _aggiungiAttivita,
+                  icon: const Icon(Icons.add),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
 
+            // Lista attività aggiunte
+            if (_attivita.isNotEmpty) ...[
               const SizedBox(height: 12),
-
-              // Lista attività aggiunte
-              if (_attivita.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Nessuna attività aggiunta.',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                  ),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _attivita.length,
-                  itemBuilder: (context, index) {
-                    final attivita = _attivita[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ListTile(
+              _buildCard(
+                children: _attivita
+                    .map(
+                      (a) => ListTile(
                         leading: const Icon(
                           Icons.radio_button_unchecked,
                           color: Color(0xFF1E3A8A),
                         ),
-                        title: Text(attivita.nome),
+                        title: Text(a.nome),
                         trailing: IconButton(
                           icon: const Icon(
-                            Icons.delete_outline,
+                            Icons.remove_circle_outline,
                             color: Colors.red,
                           ),
-                          onPressed: () => _rimuoviAttivita(index),
+                          onPressed: () => _rimuoviAttivita(a.id),
                         ),
+                        dense: true,
                       ),
-                    );
-                  },
-                ),
-
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Widget helper per i titoli di sezione
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF1E3A8A),
-      ),
-    );
-  }
-}
-
-// Widget helper per il campo data con tap
-class _DatePickerField extends StatelessWidget {
-  final String label;
-  final DateTime? data;
-  final DateFormat dateFormat;
-  final VoidCallback onTap;
-
-  const _DatePickerField({
-    required this.label,
-    required this.data,
-    required this.dateFormat,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade400),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.calendar_month_outlined,
-              size: 18,
-              color: Color(0xFF1E3A8A),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                data != null ? dateFormat.format(data!) : label,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: data != null ? Colors.black87 : Colors.grey.shade500,
-                ),
-                overflow: TextOverflow.ellipsis,
+                    )
+                    .toList(),
               ),
-            ),
+            ],
+
+            const SizedBox(height: 32),
           ],
         ),
       ),
+    );
+  }
+
+  // --- Widget helper privati ---
+
+  Widget _buildSectionTitle(String titolo) {
+    return Text(
+      titolo.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey.shade500,
+        letterSpacing: 0.8,
+      ),
+    );
+  }
+
+  Widget _buildCard({required List<Widget> children}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildDateRow({
+    required String label,
+    required IconData icon,
+    required DateTime? data,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF1E3A8A)),
+      title: Text(label, style: const TextStyle(fontSize: 14)),
+      subtitle: Text(
+        data != null ? _dateFormat.format(data) : 'Seleziona data',
+        style: TextStyle(
+          color: data != null ? const Color(0xFF1E3A8A) : Colors.grey,
+          fontWeight: data != null ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }
