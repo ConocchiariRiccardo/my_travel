@@ -16,13 +16,13 @@ class TripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
     final giorni = viaggio.giorniAllaPartenza;
+    final dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
@@ -43,109 +43,101 @@ class TripCard extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: _gradientPerStato(giorni),
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
+                    colors: _getGradientColors(viaggio.destinazione),
                   ),
                 ),
               ),
 
-              // --- Contenuto ---
-              Padding(
-                padding: const EdgeInsets.all(20),
+              // --- Overlay scuro in basso per leggibilità ---
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 90,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.6),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // --- Badge stato in alto a sinistra ---
+              Positioned(
+                top: 12,
+                left: 12,
+                child: _buildStateBadge(giorni),
+              ),
+
+              // --- Bottone elimina in alto a destra ---
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.white),
+                  onPressed: () => _confirmDelete(context),
+                ),
+              ),
+
+              // --- Testo in basso ---
+              Positioned(
+                bottom: 12,
+                left: 16,
+                right: 16,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Riga superiore: destinazione + badge stato
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Icona + Destinazione
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              viaggio.destinazione,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Badge stato
-                        _BadgeStato(
-                            giorni: giorni, isInCorso: viaggio.isInCorso),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Nome viaggio
                     Text(
                       viaggio.nome,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-
-                    const SizedBox(height: 12),
-
-                    // Riga inferiore: date + countdown + delete
+                    const SizedBox(height: 2),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Date
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_today_rounded,
-                              color: Colors.white70,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${dateFormat.format(viaggio.dataInizio)} → ${dateFormat.format(viaggio.dataFine)}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: Colors.white70,
+                          size: 14,
                         ),
-
-                        // Countdown o "In corso"
-                        _CountdownBadge(
-                          giorni: giorni,
-                          isInCorso: viaggio.isInCorso,
+                        const SizedBox(width: 4),
+                        Text(
+                          viaggio.destinazione,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          color: Colors.white70,
+                          size: 13,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${dateFormat.format(viaggio.dataInizio)} → ${dateFormat.format(viaggio.dataFine)}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
                   ],
-                ),
-              ),
-
-              // --- Bottone elimina (in alto a destra) ---
-              Positioned(
-                top: 8,
-                right: 8,
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline_rounded,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: onDelete,
                 ),
               ),
             ],
@@ -155,90 +147,77 @@ class TripCard extends StatelessWidget {
     );
   }
 
-  // Colori diversi in base allo stato del viaggio
-  List<Color> _gradientPerStato(int giorni) {
-    if (viaggio.isInCorso) {
-      return [const Color(0xFF059669), const Color(0xFF047857)]; // verde
-    }
-    if (giorni <= 3 && giorni >= 0) {
-      return [const Color(0xFFD97706), const Color(0xFFB45309)]; // arancione
-    }
-    return [const Color(0xFF1E3A8A), const Color(0xFF1E40AF)]; // blu default
-  }
-}
-
-// Badge testuale che mostra lo stato
-class _BadgeStato extends StatelessWidget {
-  final int giorni;
-  final bool isInCorso;
-
-  const _BadgeStato({required this.giorni, required this.isInCorso});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStateBadge(int giorni) {
     String testo;
-    if (isInCorso) {
+    Color colore;
+
+    if (viaggio.isInCorso) {
       testo = '● In corso';
+      colore = Colors.green.shade600;
     } else if (giorni == 0) {
-      testo = '● Oggi!';
-    } else if (giorni < 0) {
-      testo = 'Concluso';
+      testo = '🚀 Oggi!';
+      colore = Colors.orange.shade700;
+    } else if (giorni > 0) {
+      testo = 'Tra $giorni ${giorni == 1 ? "giorno" : "giorni"}';
+      colore = const Color(0xFF1E3A8A);
     } else {
-      testo = 'Programmato';
+      testo = 'Concluso';
+      colore = Colors.grey.shade600;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: colore,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         testo,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
-}
 
-// Badge con il countdown numerico
-class _CountdownBadge extends StatelessWidget {
-  final int giorni;
-  final bool isInCorso;
+  // Genera un gradiente diverso in base alla destinazione
+  // (deterministico: stessa città = stesso colore)
+  List<Color> _getGradientColors(String destinazione) {
+    final palettes = [
+      [const Color(0xFF1E3A8A), const Color(0xFF3B82F6)],
+      [const Color(0xFF065F46), const Color(0xFF34D399)],
+      [const Color(0xFF7C3AED), const Color(0xFFA78BFA)],
+      [const Color(0xFF92400E), const Color(0xFFFBBF24)],
+      [const Color(0xFF9D174D), const Color(0xFFF472B6)],
+      [const Color(0xFF1E40AF), const Color(0xFF60A5FA)],
+    ];
+    final index = destinazione.length % palettes.length;
+    return palettes[index];
+  }
 
-  const _CountdownBadge({required this.giorni, required this.isInCorso});
-
-  @override
-  Widget build(BuildContext context) {
-    if (isInCorso) return const SizedBox.shrink();
-
-    String testo;
-    if (giorni == 0) {
-      testo = 'Oggi!';
-    } else if (giorni < 0) {
-      testo = '${giorni.abs()}gg fa';
-    } else {
-      testo = 'tra $giorni gg';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.25),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        testo,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
+  Future<void> _confirmDelete(BuildContext context) async {
+    final conferma = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Elimina viaggio'),
+        content: Text(
+          'Vuoi eliminare "${viaggio.nome}"? L\'operazione è irreversibile.',
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Annulla'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Elimina'),
+          ),
+        ],
       ),
     );
+    if (conferma == true) onDelete();
   }
 }
