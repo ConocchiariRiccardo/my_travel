@@ -15,6 +15,7 @@ import 'ui/trips/trip_detail_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
 import 'ui/expenses/expense_screen.dart';
 import 'ui/expenses/add_expense_screen.dart';
+import 'ui/expenses/pdf_preview_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +97,13 @@ class MyTravelApp extends StatelessWidget {
                 builder: (context, state) {
                   final tripId = state.pathParameters['id']!;
                   return AddExpenseScreen(viaggioId: tripId);
+                },
+              ),
+              GoRoute(
+                path: '/trip/:id/pdf',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  return PdfPreviewScreen(viaggioId: tripId);
                 },
               ),
               // Aggiungeremo /trip/:id, /calendar, /profile nelle prossime fasi
