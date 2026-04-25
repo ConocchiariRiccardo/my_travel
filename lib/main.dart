@@ -11,10 +11,20 @@ import 'ui/auth/login_screen.dart';
 import 'ui/auth/register_screen.dart';
 import 'ui/home/home_screen.dart';
 import 'ui/trips/add_trip_screen.dart';
+import 'ui/trips/trip_detail_screen.dart';
+import 'ui/calendar/calendar_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  try {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    // Firebase è già stato inizializzato nativamente, forziamo l'avvio ignorando l'errore.
+    debugPrint("Firebase già inizializzato, ignoro e vado avanti.");
+  }
+
   // Inizializza le localizzazioni italiane per le date
   await initializeDateFormatting('it_IT', null);
   runApp(const MyTravelApp());
@@ -60,6 +70,17 @@ class MyTravelApp extends StatelessWidget {
               GoRoute(
                 path: '/add-trip',
                 builder: (_, __) => const AddTripScreen(),
+              ),
+              GoRoute(
+                path: '/trip/:id',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  return TripDetailScreen(viaggioId: tripId);
+                },
+              ),
+              GoRoute(
+                path: '/calendar',
+                builder: (context, state) => const CalendarScreen(),
               ),
               // Aggiungeremo /trip/:id, /calendar, /profile nelle prossime fasi
             ],

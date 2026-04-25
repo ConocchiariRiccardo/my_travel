@@ -53,6 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: const Color(0xFF1E3A8A),
             actions: [
               IconButton(
+                icon: const Icon(Icons.calendar_month_outlined,
+                    color: Colors.white),
+                tooltip: 'Calendario',
+                onPressed: () => context.push('/calendar'),
+              ),
+              IconButton(
                 icon: const Icon(Icons.person_outline, color: Colors.white),
                 onPressed: () {}, // Fase 8: profilo
               ),
