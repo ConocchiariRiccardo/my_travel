@@ -13,6 +13,8 @@ import 'ui/home/home_screen.dart';
 import 'ui/trips/add_trip_screen.dart';
 import 'ui/trips/trip_detail_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
+import 'ui/expenses/expense_screen.dart';
+import 'ui/expenses/add_expense_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,6 +83,20 @@ class MyTravelApp extends StatelessWidget {
               GoRoute(
                 path: '/calendar',
                 builder: (context, state) => const CalendarScreen(),
+              ),
+              GoRoute(
+                path: '/trip/:id/expenses',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  return ExpenseScreen(viaggioId: tripId);
+                },
+              ),
+              GoRoute(
+                path: '/trip/:id/expenses/add',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  return AddExpenseScreen(viaggioId: tripId);
+                },
               ),
               // Aggiungeremo /trip/:id, /calendar, /profile nelle prossime fasi
             ],
