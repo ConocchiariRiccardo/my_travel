@@ -53,6 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: const Color(0xFF1E3A8A),
             actions: [
               IconButton(
+                icon:
+                    const Icon(Icons.location_on_outlined, color: Colors.white),
+                tooltip: 'Workspace Finder',
+                onPressed: () => context.push('/workspace'),
+              ),
+              IconButton(
                 icon: const Icon(Icons.calendar_month_outlined,
                     color: Colors.white),
                 tooltip: 'Calendario',

@@ -16,6 +16,7 @@ import 'ui/calendar/calendar_screen.dart';
 import 'ui/expenses/expense_screen.dart';
 import 'ui/expenses/add_expense_screen.dart';
 import 'ui/expenses/pdf_preview_screen.dart';
+import 'ui/workspace/workspace_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,6 +106,10 @@ class MyTravelApp extends StatelessWidget {
                   final tripId = state.pathParameters['id']!;
                   return PdfPreviewScreen(viaggioId: tripId);
                 },
+              ),
+              GoRoute(
+                path: '/workspace',
+                builder: (context, state) => const WorkspaceScreen(),
               ),
               // Aggiungeremo /trip/:id, /calendar, /profile nelle prossime fasi
             ],
