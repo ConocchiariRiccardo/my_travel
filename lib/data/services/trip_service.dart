@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
+import 'notification_service.dart';
 
 class TripService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -45,6 +46,16 @@ class TripService {
   // Crea un nuovo viaggio
   Future<String> creaViaggio(String userId, Viaggio viaggio) async {
     final docRef = await _viaggiRef(userId).add(viaggio.toJson());
+
+    // Schedula notifica di partenza automaticamente
+    final notifService = NotificationService();
+    await notifService.schedulaNotificaPartenza(
+      id: notifService.idDaViaggioId(docRef.id),
+      nomeViaggio: viaggio.nome,
+      destinazione: viaggio.destinazione,
+      dataPartenza: viaggio.dataInizio,
+    );
+
     return docRef.id;
   }
 
@@ -55,12 +66,15 @@ class TripService {
 
   // Elimina un viaggio e tutte le sue attività
   Future<void> eliminaViaggio(String userId, String viaggioId) async {
-    // Prima elimina le attività (sub-collection)
+    final notifService = NotificationService();
+    await notifService.cancellaNotifica(
+      notifService.idDaViaggioId(viaggioId),
+    );
+
     final attivitaSnapshot = await _attivitaRef(userId, viaggioId).get();
     for (final doc in attivitaSnapshot.docs) {
       await doc.reference.delete();
     }
-    // Poi elimina il viaggio
     await _viaggiRef(userId).doc(viaggioId).delete();
   }
 
@@ -72,11 +86,8 @@ class TripService {
   // --- CRUD ATTIVITÀ ---
 
   Stream<List<Attivita>> streamAttivita(String userId, String viaggioId) {
-    return _attivitaRef(userId, viaggioId)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Attivita.fromJson(doc.data()))
-            .toList());
+    return _attivitaRef(userId, viaggioId).snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => Attivita.fromJson(doc.data())).toList());
   }
 
   Future<void> aggiungiAttivita(
