@@ -66,7 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.person_outline, color: Colors.white),
-                onPressed: () {}, // Fase 8: profilo
+                tooltip: 'Profilo',
+                onPressed: () => context.push('/profile'),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
