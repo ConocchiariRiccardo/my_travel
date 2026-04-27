@@ -167,7 +167,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
     return PdfPreview(
       build: (_) async => Uint8List.fromList(_pdfBytes!),
       allowPrinting: true,
-      allowSharing: true,
+      allowSharing: false,
       canChangeOrientation: false,
       canChangePageFormat: false,
       initialPageFormat: PdfPageFormat.a4,
