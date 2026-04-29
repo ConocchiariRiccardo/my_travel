@@ -1,0 +1,95 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/models/viaggio.dart';
+import '../../domain/models/attivita.dart';
+
+class ViaggioRepository {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> _ref(String userId) {
+    return _db.collection('users').doc(userId).collection('viaggi');
+  }
+
+  CollectionReference<Map<String, dynamic>> _attivitaRef(
+    String userId,
+    String viaggioId,
+  ) {
+    return _ref(userId).doc(viaggioId).collection('attivita');
+  }
+
+  Stream<List<Viaggio>> streamAttivi(String userId) {
+    return _ref(userId)
+        .where('isCompletato', isEqualTo: false)
+        .orderBy('dataInizio')
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+            .toList());
+  }
+
+  Stream<List<Viaggio>> streamCompletati(String userId) {
+    return _ref(userId)
+        .where('isCompletato', isEqualTo: true)
+        .orderBy('dataFine', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+            .toList());
+  }
+
+  Future<String> crea(String userId, Viaggio viaggio) async {
+    final doc = await _ref(userId).add(viaggio.toJson());
+    return doc.id;
+  }
+
+  Future<void> aggiorna(String userId, Viaggio viaggio) async {
+    await _ref(userId).doc(viaggio.id).update(viaggio.toJson());
+  }
+
+  Future<void> elimina(String userId, String viaggioId) async {
+    final attivita = await _attivitaRef(userId, viaggioId).get();
+    for (final doc in attivita.docs) {
+      await doc.reference.delete();
+    }
+    await _ref(userId).doc(viaggioId).delete();
+  }
+
+  Future<void> completa(String userId, String viaggioId) async {
+    await _ref(userId).doc(viaggioId).update({'isCompletato': true});
+  }
+
+  Stream<List<Attivita>> streamAttivita(String userId, String viaggioId) {
+    return _attivitaRef(userId, viaggioId)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((doc) => Attivita.fromJson(doc.data()))
+            .toList());
+  }
+
+  Future<void> aggiungiAttivita(
+    String userId,
+    String viaggioId,
+    Attivita attivita,
+  ) async {
+    await _attivitaRef(userId, viaggioId)
+        .doc(attivita.id)
+        .set(attivita.toJson());
+  }
+
+  Future<void> toggleAttivita(
+    String userId,
+    String viaggioId,
+    Attivita attivita,
+  ) async {
+    await _attivitaRef(userId, viaggioId)
+        .doc(attivita.id)
+        .update({'isCompletata': !attivita.isCompletata});
+  }
+
+  Future<void> eliminaAttivita(
+    String userId,
+    String viaggioId,
+    String attivitaId,
+  ) async {
+    await _attivitaRef(userId, viaggioId).doc(attivitaId).delete();
+  }
+}
