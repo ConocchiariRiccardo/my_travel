@@ -108,7 +108,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     if (testo.isEmpty) return;
 
     final nuovaAttivita = Attivita(id: _uuid.v4(), nome: testo);
-    final success = await _viewModel.aggiungiAttivita(
+    final success = await _viewModel.aggiungi(
       userId,
       widget.viaggioId,
       nuovaAttivita,
@@ -155,7 +155,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     if (conferma != true) return;
 
     final userId = context.read<AuthViewModel>().currentUser!.uid;
-    final success = await _viewModel.completaViaggio(userId, widget.viaggioId);
+    final success = await _viewModel.completa(userId, widget.viaggioId);
 
     if (!mounted) return;
 
@@ -384,9 +384,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                             children: attivita.map((a) {
                               return _AttivitaTile(
                                 attivita: a,
-                                onToggle: () => _viewModel.toggleAttivita(
+                                onToggle: () => _viewModel.toggle(
                                     userId, widget.viaggioId, a),
-                                onDelete: () => _viewModel.eliminaAttivita(
+                                onDelete: () => _viewModel.elimina(
                                     userId, widget.viaggioId, a.id),
                               );
                             }).toList(),
@@ -403,7 +403,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             // Fase 5: gestione spese
-                            Navigator.pushNamed(context, '/trip-expenses',
+                            Navigator.pushNamed(context, '/expenses',
                                 arguments: widget.viaggioId);
                           },
                           icon: const Icon(Icons.receipt_long_outlined),

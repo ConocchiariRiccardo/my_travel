@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:my_travel/data/repositories/spesa_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../auth/auth_view_model.dart';
-import '../../data/services/expense_service.dart';
+import '../../data/repositories/spesa_repository.dart';
 import '../../data/services/ocr_service.dart';
 import '../../domain/models/spesa.dart';
 
@@ -22,7 +23,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descrizioneController = TextEditingController();
   final _importoController = TextEditingController();
-  final _expenseService = ExpenseService();
+  final _spesaRepo = SpesaRepository();
   final _ocrService = OcrService();
   final _uuid = const Uuid();
   final DateFormat _dateFormat = DateFormat('dd MMMM yyyy', 'it_IT');
@@ -207,7 +208,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         data: _dataSelezionata,
       );
 
-      await _expenseService.aggiungiSpesa(userId, widget.viaggioId, nuovaSpesa);
+      await _spesaRepo.aggiungi(userId, widget.viaggioId, nuovaSpesa);
 
       if (!mounted) return;
 

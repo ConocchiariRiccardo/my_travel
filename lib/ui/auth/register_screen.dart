@@ -45,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // Il redirect del GoRouter porta automaticamente a /home
+      Navigator.pushReplacementNamed(context, '/home');
     } else if (authViewModel.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

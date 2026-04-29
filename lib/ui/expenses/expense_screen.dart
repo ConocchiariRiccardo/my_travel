@@ -88,7 +88,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       ),
     );
     if (conferma == true) {
-      await _viewModel.eliminaSpesa(userId, widget.viaggioId, spesa.id);
+      await _viewModel.elimina(userId, widget.viaggioId, spesa.id);
     }
   }
 
@@ -109,7 +109,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),
             tooltip: 'Genera PDF',
-            onPressed: () => Navigator.pushNamed(context, '/pdf-preview',
+            onPressed: () => Navigator.pushNamed(context, '/pdf',
                 arguments: widget.viaggioId),
           ),
         ],
@@ -144,7 +144,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pushNamed(context, '/add-expense',
+        onPressed: () => Navigator.pushNamed(context, '/expense/add',
             arguments: widget.viaggioId),
         backgroundColor: const Color(0xFF1E3A8A),
         icon: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
@@ -268,7 +268,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         return conferma;
       },
       onDismissed: (_) =>
-          _viewModel.eliminaSpesa(userId, widget.viaggioId, spesa.id),
+          _viewModel.elimina(userId, widget.viaggioId, spesa.id),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),

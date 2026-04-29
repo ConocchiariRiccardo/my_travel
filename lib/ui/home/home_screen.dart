@@ -163,9 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     viaggio: viaggio,
                     onTap: () {
                       // Fase 3: naviga al dettaglio
-                      Navigator.pushNamed(context, '/trip-detail', arguments: viaggio.id);
+                      Navigator.pushNamed(context, '/trip', arguments: viaggio.id);
                     },
-                    onDelete: () => homeVm.eliminaViaggio(userId, viaggio.id),
+                    onDelete: () => homeVm.elimina(userId, viaggio.id),
                   );
                 },
                 childCount: homeVm.viaggi.length,

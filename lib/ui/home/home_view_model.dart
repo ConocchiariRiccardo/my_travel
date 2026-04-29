@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../data/services/trip_service.dart';
+import '../../data/repositories/viaggio_repository.dart';
 import '../../domain/models/viaggio.dart';
+import '../../data/services/notification_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  final TripService _tripService = TripService();
+  final ViaggioRepository _viaggioRepo = ViaggioRepository();
 
   List<Viaggio> _tutti = [];
   List<Viaggio> _viaggiFiltrati = [];
@@ -26,7 +27,7 @@ class HomeViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _subscription = _tripService.streamViaggioAttivi(userId).listen(
+    _subscription = _viaggioRepo.streamAttivi(userId).listen(
       (lista) {
         _tutti = lista;
         _applicaFiltri();
@@ -83,9 +84,13 @@ class HomeViewModel extends ChangeNotifier {
     _viaggiFiltrati = risultato;
   }
 
-  Future<void> eliminaViaggio(String userId, String viaggioId) async {
+  Future<void> elimina(String userId, String viaggioId) async {
     try {
-      await _tripService.eliminaViaggio(userId, viaggioId);
+      await _viaggioRepo.elimina(userId, viaggioId);
+
+      // 2. Spegni la sveglia sul telefono
+      final notifService = NotificationService();
+      await notifService.cancellaNotifica(notifService.idDaViaggioId(viaggioId));
     } catch (e) {
       _errorMessage = 'Impossibile eliminare il viaggio.';
       notifyListeners();

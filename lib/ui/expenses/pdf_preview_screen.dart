@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:printing/printing.dart';
 import '../auth/auth_view_model.dart';
-import '../../data/services/expense_service.dart';
-import '../../data/services/trip_service.dart';
+import '../../data/repositories/spesa_repository.dart';
+import '../../data/repositories/viaggio_repository.dart';
 import '../../data/services/pdf_service.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/spesa.dart';
@@ -20,8 +20,8 @@ class PdfPreviewScreen extends StatefulWidget {
 }
 
 class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
-  final ExpenseService _expenseService = ExpenseService();
-  final TripService _tripService = TripService();
+  final SpesaRepository _spesaRepo = SpesaRepository();
+  final ViaggioRepository _viaggioRepo = ViaggioRepository();
   final PdfService _pdfService = PdfService();
 
   bool _isLoading = true;
@@ -44,8 +44,8 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
 
       // Carica viaggio e spese in parallelo
       final risultati = await Future.wait([
-        _tripService.streamViaggioAttivi(userId).first,
-        _expenseService.getSpese(userId, widget.viaggioId),
+        _viaggioRepo.streamAttivi(userId).first,
+        _spesaRepo.getSpese(userId, widget.viaggioId),
       ]);
 
       final listaViaggi = risultati[0] as List<Viaggio>;
@@ -57,7 +57,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
         viaggioTrovato =
             listaViaggi.firstWhere((v) => v.id == widget.viaggioId);
       } catch (_) {
-        final storico = await _tripService.streamViaggiCompletati(userId).first;
+        final storico = await _viaggioRepo.streamCompletati(userId).first;
         try {
           viaggioTrovato = storico.firstWhere((v) => v.id == widget.viaggioId);
         } catch (_) {

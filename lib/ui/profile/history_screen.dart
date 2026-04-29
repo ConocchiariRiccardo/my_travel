@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../auth/auth_view_model.dart';
-import '../../data/services/trip_service.dart';
-import '../../data/services/expense_service.dart';
+import '../../data/repositories/viaggio_repository.dart';
+import '../../data/repositories/spesa_repository.dart';
 import '../../domain/models/viaggio.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -14,8 +14,8 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  final TripService _tripService = TripService();
-  final ExpenseService _expenseService = ExpenseService();
+  final ViaggioRepository _viaggioRepo = ViaggioRepository();
+  final SpesaRepository _spesaRepo = SpesaRepository();
   final DateFormat _dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
 
   @override
@@ -32,7 +32,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
       body: StreamBuilder<List<Viaggio>>(
-        stream: _tripService.streamViaggiCompletati(userId),
+        stream: _viaggioRepo.streamCompletati(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -58,9 +58,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               return _HistoryCard(
                 viaggio: viaggio,
                 userId: userId,
-                expenseService: _expenseService,
+                spesaRepo: _spesaRepo,
                 dateFormat: _dateFormat,
-                onTap: () => Navigator.pushNamed(context, '/pdf-preview', arguments: viaggio.id),
+                onTap: () => Navigator.pushNamed(context, '/pdf',
+                    arguments: viaggio.id),
               );
             },
           );
@@ -73,14 +74,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 class _HistoryCard extends StatelessWidget {
   final Viaggio viaggio;
   final String userId;
-  final ExpenseService expenseService;
+  final SpesaRepository spesaRepo;
   final DateFormat dateFormat;
   final VoidCallback onTap;
 
   const _HistoryCard({
     required this.viaggio,
     required this.userId,
-    required this.expenseService,
+    required this.spesaRepo,
     required this.dateFormat,
     required this.onTap,
   });
@@ -185,8 +186,7 @@ class _HistoryCard extends StatelessWidget {
                     // Totale spese asincrono
                     Expanded(
                       child: FutureBuilder<double>(
-                        future:
-                            expenseService.getTotaleSpese(userId, viaggio.id),
+                        future: spesaRepo.getTotale(userId, viaggio.id),
                         builder: (context, snap) {
                           final totale = snap.data ?? 0.0;
                           return _buildInfoItem(

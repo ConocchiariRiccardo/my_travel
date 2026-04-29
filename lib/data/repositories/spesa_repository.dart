@@ -60,6 +60,6 @@ class SpesaRepository {
 
   Future<double> getTotale(String userId, String viaggioId) async {
     final spese = await getSpese(userId, viaggioId);
-    return spese.fold(0.0, (somma, s) => somma + s.importo);
+    return spese.fold<double>(0.0, (somma, s) => somma + s.importo);
   }
 }

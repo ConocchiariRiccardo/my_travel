@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
+import '../../data/services/notification_service.dart';
 
 class ViaggioRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -58,14 +59,11 @@ class ViaggioRepository {
   }
 
   Stream<List<Attivita>> streamAttivita(String userId, String viaggioId) {
-    return _attivitaRef(userId, viaggioId)
-        .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => Attivita.fromJson(doc.data()))
-            .toList());
+    return _attivitaRef(userId, viaggioId).snapshots().map((snap) =>
+        snap.docs.map((doc) => Attivita.fromJson(doc.data())).toList());
   }
 
-  Future<void> aggiungiAttivita(
+  Future<void> aggiungi(
     String userId,
     String viaggioId,
     Attivita attivita,
@@ -75,7 +73,7 @@ class ViaggioRepository {
         .set(attivita.toJson());
   }
 
-  Future<void> toggleAttivita(
+  Future<void> toggle(
     String userId,
     String viaggioId,
     Attivita attivita,

@@ -6,7 +6,8 @@ import '../auth/auth_view_model.dart';
 import '../home/home_view_model.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
-import '../../data/services/trip_service.dart';
+import '../../data/repositories/viaggio_repository.dart';
+import '../../data/services/notification_service.dart';
 
 class AddTripScreen extends StatefulWidget {
   const AddTripScreen({super.key});
@@ -20,7 +21,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
   final _nomeController = TextEditingController();
   final _destinazioneController = TextEditingController();
   final _attivitaController = TextEditingController();
-  final _tripService = TripService();
+  final _viaggioRepo = ViaggioRepository();
   final _uuid = const Uuid();
 
   DateTime? _dataInizio;
@@ -125,11 +126,20 @@ class _AddTripScreenState extends State<AddTripScreen> {
       );
 
       // Salva il viaggio e ottieni l'id generato da Firestore
-      final viaggioId = await _tripService.creaViaggio(userId, nuovoViaggio);
+      final viaggioId = await _viaggioRepo.crea(userId, nuovoViaggio);
+
+      // 2. Schedula la notifica manualmente
+      final notifService = NotificationService();
+      await notifService.schedulaNotificaPartenza(
+        id: notifService.idDaViaggioId(viaggioId),
+        nomeViaggio: nuovoViaggio.nome,
+        destinazione: nuovoViaggio.destinazione,
+        dataPartenza: nuovoViaggio.dataInizio,
+      );
 
       // Salva le attività nella sub-collection
       for (final attivita in _attivita) {
-        await _tripService.aggiungiAttivita(userId, viaggioId, attivita);
+        await _viaggioRepo.aggiungi(userId, viaggioId, attivita);
       }
 
       if (!mounted) return;

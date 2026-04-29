@@ -278,7 +278,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         final colore = _viewModel.coloreViaggio(viaggio);
 
         return GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/trip-detail', arguments: viaggio.id),
+          onTap: () => Navigator.pushNamed(context, '/trip', arguments: viaggio.id),
           child: Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(16),

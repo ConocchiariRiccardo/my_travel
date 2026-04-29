@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../data/services/trip_service.dart';
+import '../../data/repositories/viaggio_repository.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
 
 class TripDetailViewModel extends ChangeNotifier {
-  final TripService _tripService = TripService();
+  final ViaggioRepository _viaggioRepo = ViaggioRepository();
 
   Viaggio? _viaggio;
   List<Attivita> _attivita = [];
@@ -29,7 +29,7 @@ class TripDetailViewModel extends ChangeNotifier {
 
   void inizializza(String userId, String viaggioId) {
     // Stream del viaggio (per aggiornamenti real-time al titolo, date, ecc.)
-    _viaggioSub = _tripService.streamViaggioAttivi(userId).listen((lista) {
+    _viaggioSub = _viaggioRepo.streamAttivi(userId).listen((lista) {
       try {
         _viaggio = lista.firstWhere((v) => v.id == viaggioId);
       } catch (_) {
@@ -45,7 +45,7 @@ class TripDetailViewModel extends ChangeNotifier {
 
     // Stream delle attività
     _attivitaSub =
-        _tripService.streamAttivita(userId, viaggioId).listen((lista) {
+        _viaggioRepo.streamAttivita(userId, viaggioId).listen((lista) {
       _attivita = lista;
       notifyListeners();
     }, onError: (_) {
@@ -54,39 +54,39 @@ class TripDetailViewModel extends ChangeNotifier {
     });
   }
 
-  Future<void> toggleAttivita(
+  Future<void> toggle(
     String userId,
     String viaggioId,
     Attivita attivita,
   ) async {
     try {
-      await _tripService.toggleAttivita(userId, viaggioId, attivita);
+      await _viaggioRepo.toggle(userId, viaggioId, attivita);
     } catch (_) {
       _errorMessage = 'Impossibile aggiornare l\'attività.';
       notifyListeners();
     }
   }
 
-  Future<void> eliminaAttivita(
+  Future<void> elimina(
     String userId,
     String viaggioId,
     String attivitaId,
   ) async {
     try {
-      await _tripService.eliminaAttivita(userId, viaggioId, attivitaId);
+      await _viaggioRepo.eliminaAttivita(userId, viaggioId, attivitaId);
     } catch (_) {
       _errorMessage = 'Impossibile eliminare l\'attività.';
       notifyListeners();
     }
   }
 
-  Future<bool> aggiungiAttivita(
+  Future<bool> aggiungi(
     String userId,
     String viaggioId,
     Attivita attivita,
   ) async {
     try {
-      await _tripService.aggiungiAttivita(userId, viaggioId, attivita);
+      await _viaggioRepo.aggiungi(userId, viaggioId, attivita);
       return true;
     } catch (_) {
       _errorMessage = 'Impossibile aggiungere l\'attività.';
@@ -95,9 +95,9 @@ class TripDetailViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> completaViaggio(String userId, String viaggioId) async {
+  Future<bool> completa(String userId, String viaggioId) async {
     try {
-      await _tripService.completaViaggio(userId, viaggioId);
+      await _viaggioRepo.completa(userId, viaggioId);
       return true;
     } catch (_) {
       _errorMessage = 'Impossibile completare il viaggio.';

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../data/services/trip_service.dart';
+import '../../data/repositories/viaggio_repository.dart';
 import '../../domain/models/viaggio.dart';
 
 class CalendarViewModel extends ChangeNotifier {
-  final TripService _tripService = TripService();
+  final ViaggioRepository _viaggioRepo = ViaggioRepository();
 
   List<Viaggio> _viaggi = [];
   DateTime _giornoSelezionato = DateTime.now();
@@ -40,7 +40,7 @@ class CalendarViewModel extends ChangeNotifier {
   }
 
   void inizializza(String userId) {
-    _subscription = _tripService.streamViaggioAttivi(userId).listen(
+    _subscription = _viaggioRepo.streamAttivi(userId).listen(
       (lista) {
         _viaggi = lista;
         _isLoading = false;

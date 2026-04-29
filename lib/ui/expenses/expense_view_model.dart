@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../data/services/expense_service.dart';
+import '../../data/repositories/spesa_repository.dart';
 import '../../domain/models/spesa.dart';
 
 class ExpenseViewModel extends ChangeNotifier {
-  final ExpenseService _expenseService = ExpenseService();
+  final SpesaRepository _spesaRepo = SpesaRepository();
 
   List<Spesa> _spese = [];
   bool _isLoading = true;
@@ -31,7 +31,7 @@ class ExpenseViewModel extends ChangeNotifier {
   }
 
   void inizializza(String userId, String viaggioId) {
-    _subscription = _expenseService.streamSpese(userId, viaggioId).listen(
+    _subscription = _spesaRepo.streamSpese(userId, viaggioId).listen(
       (lista) {
         _spese = lista;
         _isLoading = false;
@@ -46,13 +46,13 @@ class ExpenseViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> eliminaSpesa(
+  Future<void> elimina(
     String userId,
     String viaggioId,
     String spesaId,
   ) async {
     try {
-      await _expenseService.eliminaSpesa(userId, viaggioId, spesaId);
+      await _spesaRepo.elimina(userId, viaggioId, spesaId);
     } catch (_) {
       _errorMessage = 'Impossibile eliminare la spesa.';
       notifyListeners();
