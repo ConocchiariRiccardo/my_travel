@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../auth/auth_view_model.dart';
@@ -40,7 +39,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: const Text('Calendario Trasferte'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: ListenableBuilder(
@@ -279,7 +278,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         final colore = _viewModel.coloreViaggio(viaggio);
 
         return GestureDetector(
-          onTap: () => context.push('/trip/${viaggio.id}'),
+          onTap: () => Navigator.pushNamed(context, '/trip-detail', arguments: viaggio.id),
           child: Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(16),

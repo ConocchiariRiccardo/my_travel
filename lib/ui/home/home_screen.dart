@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../auth/auth_view_model.dart';
 import '../widgets/trip_card.dart';
 import 'home_view_model.dart';
@@ -17,16 +16,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isInitialized = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Inizializza lo stream una sola volta, quando abbiamo l'userId
-    if (!_isInitialized) {
-      final userId = context.read<AuthViewModel>().currentUser?.uid;
-      if (userId != null) {
-        context.read<HomeViewModel>().inizializza(userId);
-        _isInitialized = true;
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context
+            .read<HomeViewModel>()
+            .inizializza(context.read<AuthViewModel>().currentUser!.uid);
       }
-    }
+    });
   }
 
   @override
@@ -56,18 +54,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon:
                     const Icon(Icons.location_on_outlined, color: Colors.white),
                 tooltip: 'Workspace Finder',
-                onPressed: () => context.push('/workspace'),
+                onPressed: () => Navigator.pushNamed(context, '/workspace'),
               ),
               IconButton(
                 icon: const Icon(Icons.calendar_month_outlined,
                     color: Colors.white),
                 tooltip: 'Calendario',
-                onPressed: () => context.push('/calendar'),
+                onPressed: () => Navigator.pushNamed(context, '/calendar'),
               ),
               IconButton(
                 icon: const Icon(Icons.person_outline, color: Colors.white),
                 tooltip: 'Profilo',
-                onPressed: () => context.push('/profile'),
+                onPressed: () => Navigator.pushNamed(context, '/profile'),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -165,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     viaggio: viaggio,
                     onTap: () {
                       // Fase 3: naviga al dettaglio
-                      context.push('/trip/${viaggio.id}');
+                      Navigator.pushNamed(context, '/trip-detail', arguments: viaggio.id);
                     },
                     onDelete: () => homeVm.eliminaViaggio(userId, viaggio.id),
                   );
@@ -181,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // --- FAB: aggiungi viaggio ---
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add-trip'),
+        onPressed: () => Navigator.pushNamed(context, '/add-trip'),
         backgroundColor: const Color(0xFF1E3A8A),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(

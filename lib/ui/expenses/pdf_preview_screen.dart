@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 import '../auth/auth_view_model.dart';
 import '../../data/services/expense_service.dart';
@@ -92,7 +91,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
         title: const Text('Report Spese'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           if (!_isLoading && _pdfBytes != null)

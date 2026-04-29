@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../auth/auth_view_model.dart';
 import '../../data/services/trip_service.dart';
@@ -29,7 +28,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         title: const Text('Storico Viaggi'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: StreamBuilder<List<Viaggio>>(
@@ -61,7 +60,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 userId: userId,
                 expenseService: _expenseService,
                 dateFormat: _dateFormat,
-                onTap: () => context.push('/trip/${viaggio.id}/pdf'),
+                onTap: () => Navigator.pushNamed(context, '/pdf-preview', arguments: viaggio.id),
               );
             },
           );

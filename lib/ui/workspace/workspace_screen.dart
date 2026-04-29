@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'workspace_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -61,7 +60,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         title: const Text('Workspace Finder'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(

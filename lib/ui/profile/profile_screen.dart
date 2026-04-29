@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../auth/auth_view_model.dart';
 import 'profile_view_model.dart';
 
@@ -81,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profilo'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           if (!_isEditing)
@@ -216,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: const Text('Storico viaggi'),
                     subtitle: const Text('Consulta le trasferte passate'),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push('/history'),
+                    onTap: () => Navigator.pushNamed(context, '/history'),
                   ),
                   const Divider(height: 1),
                   ListTile(

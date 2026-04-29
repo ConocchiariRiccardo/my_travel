@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -167,7 +166,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      context.go('/home');
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -213,7 +212,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 leading: IconButton(
                   icon:
                       const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                  onPressed: () => context.pop(),
+                  onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
                   IconButton(
@@ -404,7 +403,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             // Fase 5: gestione spese
-                            context.push('/trip/${widget.viaggioId}/expenses');
+                            Navigator.pushNamed(context, '/trip-expenses',
+                                arguments: widget.viaggioId);
                           },
                           icon: const Icon(Icons.receipt_long_outlined),
                           label: const Text('Gestisci spese e scontrini'),

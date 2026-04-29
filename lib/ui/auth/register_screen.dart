@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'auth_view_model.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -68,7 +67,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E3A8A)),
-          onPressed: () => context.go('/login'),
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(
+              context, '/login', (route) => false),
         ),
       ),
       body: SafeArea(
@@ -231,7 +231,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                     GestureDetector(
-                      onTap: () => context.go('/login'),
+                      onTap: () => Navigator.pushNamedAndRemoveUntil(
+                          context, '/login', (route) => false),
                       child: const Text(
                         'Accedi',
                         style: TextStyle(

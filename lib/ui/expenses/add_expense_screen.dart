@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -219,7 +218,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ),
       );
 
-      context.pop();
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -241,7 +240,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         title: const Text('Aggiungi Spesa'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Padding(

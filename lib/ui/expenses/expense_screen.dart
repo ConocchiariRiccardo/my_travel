@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../auth/auth_view_model.dart';
 import '../../domain/models/spesa.dart';
@@ -103,14 +102,15 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         title: const Text('Spese Viaggio'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           // Bottone genera PDF (Fase 6)
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),
             tooltip: 'Genera PDF',
-            onPressed: () => context.push('/trip/${widget.viaggioId}/pdf'),
+            onPressed: () => Navigator.pushNamed(context, '/pdf-preview',
+                arguments: widget.viaggioId),
           ),
         ],
       ),
@@ -144,7 +144,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/trip/${widget.viaggioId}/expenses/add'),
+        onPressed: () => Navigator.pushNamed(context, '/add-expense',
+            arguments: widget.viaggioId),
         backgroundColor: const Color(0xFF1E3A8A),
         icon: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
         label: const Text(

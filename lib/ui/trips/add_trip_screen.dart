@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../auth/auth_view_model.dart';
@@ -142,7 +141,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
         ),
       );
 
-      context.go('/home');
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +163,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
         title: const Text('Nuovo Viaggio'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Padding(
