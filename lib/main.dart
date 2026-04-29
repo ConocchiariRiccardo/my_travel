@@ -16,18 +16,26 @@ import 'ui/expenses/expense_screen.dart';
 import 'ui/expenses/add_expense_screen.dart';
 import 'ui/expenses/pdf_preview_screen.dart';
 import 'ui/workspace/workspace_screen.dart';
+import 'data/services/notification_service.dart';
 import 'ui/profile/profile_screen.dart';
 import 'ui/profile/history_screen.dart';
 import 'ui/profile/profile_view_model.dart';
-import 'data/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  // Sicurezza totale: evitiamo crash se Firebase prova a inizializzarsi due volte
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint("Firebase già inizializzato, ignoro e vado avanti.");
+  }
+
   await initializeDateFormatting('it_IT', null);
   await NotificationService().inizializza();
+
   runApp(const MyTravelApp());
 }
 
@@ -42,69 +50,80 @@ class MyTravelApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
       ],
-      child: MaterialApp(
-        title: 'MyTravel',
-        debugShowCheckedModeBanner: false,
-        locale: const Locale('it', 'IT'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('it', 'IT'),
-          Locale('en', 'US'),
-        ],
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1E3A8A),
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF1E3A8A),
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-        ),
-        // Schermata iniziale sempre il login
-        initialRoute: '/login',
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/add-trip': (context) => const AddTripScreen(),
-          '/calendar': (context) => const CalendarScreen(),
-          '/workspace': (context) => const WorkspaceScreen(),
-          '/profile': (context) => const ProfileScreen(),
-          '/history': (context) => const HistoryScreen(),
-        },
-        // Per le route con parametri usiamo onGenerateRoute
-        onGenerateRoute: (settings) {
-          if (settings.name == '/trip') {
-            final tripId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => TripDetailScreen(viaggioId: tripId),
-            );
-          }
-          if (settings.name == '/expenses') {
-            final tripId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => ExpenseScreen(viaggioId: tripId),
-            );
-          }
-          if (settings.name == '/expenses/add') {
-            final tripId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => AddExpenseScreen(viaggioId: tripId),
-            );
-          }
-          if (settings.name == '/pdf') {
-            final tripId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => PdfPreviewScreen(viaggioId: tripId),
-            );
-          }
-          return null;
+      // Il Consumer monitora lo stato del login e decide cosa mostrare all'utente
+      child: Consumer<AuthViewModel>(
+        builder: (context, authViewModel, child) {
+          return MaterialApp(
+            title: 'MyTravel',
+            debugShowCheckedModeBanner: false,
+            locale: const Locale('it', 'IT'),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('it', 'IT'),
+              Locale('en', 'US'),
+            ],
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF1E3A8A),
+              ),
+              useMaterial3: true,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+            ),
+
+            // Gestione della persistenza: se loggato va in Home, altrimenti Login
+            home: authViewModel.isAuthenticated
+                ? const HomeScreen()
+                : const LoginScreen(),
+
+            // Rotte fisse che non richiedono parametri
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/register': (context) => const RegisterScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/add-trip': (context) => const AddTripScreen(),
+              '/calendar': (context) => const CalendarScreen(),
+              '/workspace': (context) => const WorkspaceScreen(),
+              '/profile': (context) => const ProfileScreen(),
+              '/history': (context) => const HistoryScreen(),
+            },
+
+            // Rotte dinamiche per gestire il passaggio degli ID dei viaggi
+            onGenerateRoute: (settings) {
+              if (settings.name == '/trip') {
+                final tripId = settings.arguments as String;
+                return MaterialPageRoute(
+                  builder: (_) => TripDetailScreen(viaggioId: tripId),
+                );
+              }
+              if (settings.name == '/expenses') {
+                final tripId = settings.arguments as String;
+                return MaterialPageRoute(
+                  builder: (_) => ExpenseScreen(viaggioId: tripId),
+                );
+              }
+              if (settings.name == '/expenses/add') {
+                final tripId = settings.arguments as String;
+                return MaterialPageRoute(
+                  builder: (_) => AddExpenseScreen(viaggioId: tripId),
+                );
+              }
+              if (settings.name == '/pdf') {
+                final tripId = settings.arguments as String;
+                return MaterialPageRoute(
+                  builder: (_) => PdfPreviewScreen(viaggioId: tripId),
+                );
+              }
+              return null;
+            },
+          );
         },
       ),
     );
