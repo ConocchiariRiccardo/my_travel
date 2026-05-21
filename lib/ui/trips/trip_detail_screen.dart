@@ -9,8 +9,13 @@ import 'trip_detail_view_model.dart';
 
 class TripDetailScreen extends StatefulWidget {
   final String viaggioId;
+  final TripDetailViewModel? viewModel;
 
-  const TripDetailScreen({super.key, required this.viaggioId});
+  const TripDetailScreen({
+    super.key,
+    required this.viaggioId,
+    this.viewModel,
+  });
 
   @override
   State<TripDetailScreen> createState() => _TripDetailScreenState();
@@ -18,20 +23,24 @@ class TripDetailScreen extends StatefulWidget {
 
 class _TripDetailScreenState extends State<TripDetailScreen> {
   late final TripDetailViewModel _viewModel;
+  late final bool _ownsViewModel;
   final _uuid = const Uuid();
   final DateFormat _dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
 
   @override
   void initState() {
     super.initState();
-    _viewModel = TripDetailViewModel();
+    _ownsViewModel = widget.viewModel == null;
+    _viewModel = widget.viewModel ?? TripDetailViewModel();
     final userId = context.read<AuthViewModel>().currentUser!.uid;
     _viewModel.inizializza(userId, widget.viaggioId);
   }
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (_ownsViewModel) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 
@@ -401,6 +410,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
+                            key: const Key('manage-expenses-button'),
                           onPressed: () {
                             // Fase 5: gestione spese
                             Navigator.pushNamed(context, '/expenses',
@@ -610,6 +620,7 @@ class _AttivitaTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: GestureDetector(
+        key: Key('activity-toggle-${attivita.id}'),
         onTap: onToggle,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -642,6 +653,7 @@ class _AttivitaTile extends StatelessWidget {
         ),
       ),
       trailing: IconButton(
+        key: Key('activity-delete-${attivita.id}'),
         icon:
             const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
         onPressed: onDelete,

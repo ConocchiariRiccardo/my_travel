@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:my_travel/ui/trips/trip_detail_screen.dart';
 import 'package:my_travel/ui/trips/trip_detail_view_model.dart';
 import 'package:my_travel/ui/auth/auth_view_model.dart';
@@ -43,6 +44,11 @@ void main() {
   late MockTripDetailViewModel mockVm;
   late MockAuthViewModel mockAuth;
   late MockUser mockUser;
+
+  setUpAll(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('it_IT');
+  });
 
   setUp(() {
     mockVm = MockTripDetailViewModel();
@@ -169,8 +175,7 @@ void main() {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
 
-      // Il GestureDetector del checkbox è il leading del ListTile
-      await tester.tap(find.byType(GestureDetector).first);
+      await tester.tap(find.byKey(Key('activity-toggle-${attivita.id}')));
       await tester.pump();
       verify(mockVm.toggle('uid-test', 'v1', attivita)).called(1);
     });
@@ -180,8 +185,7 @@ void main() {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
 
-      // L'IconButton delete è nel trailing del tile
-      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.tap(find.byKey(const Key('activity-delete-a1')));
       await tester.pump();
 
       verify(mockVm.elimina('uid-test', 'v1', 'a1')).called(1);
@@ -192,7 +196,9 @@ void main() {
     testWidgets('tap "Gestisci spese" naviga verso /expenses', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      await tester.tap(find.text('Gestisci spese e scontrini'));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -650));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('manage-expenses-button')));
       await tester.pumpAndSettle();
       expect(find.text('Spese'), findsOneWidget);
     });
