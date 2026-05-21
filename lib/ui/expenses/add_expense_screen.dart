@@ -92,11 +92,29 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final erroreStringa = e.toString().toLowerCase();
+
+        // Distinguiamo l'errore di quota (messaggio comprensibile)
+        // da errori tecnici generici
+        final bool isQuotaError = erroreStringa.contains('quota') ||
+            erroreStringa.contains('rate') ||
+            erroreStringa.contains('limit');
+
+        final String messaggioUtente = isQuotaError
+            ? '⏳ Limite richieste AI raggiunto. Riprova tra qualche minuto o inserisci i dati manualmente.'
+            : 'Estrazione automatica non riuscita. Inserisci i dati manualmente.';
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Estrazione automatica fallita. Inserisci i dati manualmente.\n$e'),
+            content: Text(messaggioUtente),
             backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () =>
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+            ),
           ),
         );
       }

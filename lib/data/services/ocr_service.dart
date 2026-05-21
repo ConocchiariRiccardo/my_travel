@@ -19,7 +19,7 @@ class OcrResult {
 
 class OcrService {
   // Incolla qui la tua chiave gratuita presa da Google AI Studio
-  static const String _apiKey = 'AIzaSyB3zcBXBQ3sTvvNYFZJ199U5p7vFPcNmg8';
+  static const String _apiKey = 'AIzaSyBTaCFCuV71h4BAJnguXVSBKn0kxJrOEQs';
 
   Future<OcrResult> analizzaScontrino(File immagine) async {
     // Configura il modello Gemini imponendogli di sputare solo JSON
