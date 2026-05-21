@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:my_travel/ui/widgets/trip_card.dart';
 import 'package:my_travel/domain/models/viaggio.dart';
 
@@ -55,7 +56,13 @@ Widget buildCard({
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-void main() {
+Future<void> main() async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    await initializeDateFormatting('it_IT');
+  });
+
   group('TripCard – contenuto', () {
     testWidgets('mostra nome e destinazione', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(nome: 'Roma Q2', dest: 'Roma')));
@@ -103,7 +110,10 @@ void main() {
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
       expect(find.text('Elimina viaggio'), findsOneWidget);
-      expect(find.textContaining('Da eliminare'), findsOneWidget);
+      expect(
+        find.textContaining('L\'operazione è irreversibile.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('tap Annulla nel dialog non chiama onDelete', (tester) async {

@@ -156,6 +156,7 @@ void main() {
 
     testWidgets('tap Registrati naviga verso /register', (tester) async {
       await tester.pumpWidget(buildWidget());
+      await tester.ensureVisible(find.text('Registrati'));
       await tester.tap(find.text('Registrati'));
       await tester.pumpAndSettle();
       expect(find.text('Register'), findsOneWidget);

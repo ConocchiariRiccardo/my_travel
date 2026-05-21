@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -42,6 +43,10 @@ void main() {
   late MockAuthViewModel mockAuth;
   late MockUser mockUser;
 
+  setUpAll(() async {
+    await initializeDateFormatting('it_IT');
+  });
+
   setUp(() {
     mockHome = MockHomeViewModel();
     mockAuth = MockAuthViewModel();
@@ -66,7 +71,7 @@ void main() {
           ChangeNotifierProvider<AuthViewModel>.value(value: mockAuth),
           ChangeNotifierProvider<HomeViewModel>.value(value: mockHome),
         ],
-        child: const MaterialApp(
+        child: MaterialApp(
           home: HomeScreen(),
           routes: {
             '/add-trip': _stub,
