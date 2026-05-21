@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../auth/auth_view_model.dart';
 import 'profile_view_model.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -70,6 +72,99 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _mostraSceltaFoto(BuildContext context, ProfileViewModel profileVm) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Cambia foto profilo',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFF1E3A8A),
+                  child: Icon(Icons.camera_alt_outlined, color: Colors.white),
+                ),
+                title: const Text('Fotocamera'),
+                subtitle: const Text('Scatta una foto'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _selezionaFoto(ImageSource.camera, profileVm);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFF3B82F6),
+                  child:
+                      Icon(Icons.photo_library_outlined, color: Colors.white),
+                ),
+                title: const Text('Galleria'),
+                subtitle: const Text('Scegli dalla libreria foto'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _selezionaFoto(ImageSource.gallery, profileVm);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selezionaFoto(
+    ImageSource sorgente,
+    ProfileViewModel profileVm,
+  ) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: sorgente,
+      imageQuality: 80,
+      maxWidth: 800,
+    );
+
+    if (picked == null || !mounted) return;
+
+    await profileVm.aggiornaFotoProfilo(File(picked.path));
+
+    if (!mounted) return;
+
+    if (profileVm.successMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(profileVm.successMessage!),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else if (profileVm.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(profileVm.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+    profileVm.clearMessages();
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileVm = context.watch<ProfileViewModel>();
@@ -124,26 +219,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 16),
-                      CircleAvatar(
-                        radius: 52,
-                        backgroundColor: const Color(0xFF1E3A8A),
-                        backgroundImage: profileVm.utente?.fotoProfiloUrl !=
-                                null
-                            ? NetworkImage(profileVm.utente!.fotoProfiloUrl!)
-                            : null,
-                        child: profileVm.utente?.fotoProfiloUrl == null
-                            ? Text(
-                                _iniziali(
-                                  profileVm.utente?.nomeCompleto ??
-                                      profileVm.email,
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 36,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
+                      GestureDetector(
+                        onTap: () => _mostraSceltaFoto(context, profileVm),
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            CircleAvatar(
+                              radius: 44,
+                              backgroundColor: const Color(0xFF1E3A8A),
+                              backgroundImage:
+                                  profileVm.utente?.fotoProfiloUrl != null
+                                      ? NetworkImage(
+                                          profileVm.utente!.fotoProfiloUrl!)
+                                      : null,
+                              child: profileVm.utente?.fotoProfiloUrl == null
+                                  ? Text(
+                                      _iniziali(
+                                          profileVm.utente?.nomeCompleto ??
+                                              profileVm.email),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            // Badge di modifica
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1E3A8A),
+                                shape: BoxShape.circle,
+                              ),
+                              child: profileVm.isSaving
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.camera_alt,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(

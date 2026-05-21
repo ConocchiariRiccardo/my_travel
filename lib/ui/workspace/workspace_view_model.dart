@@ -3,7 +3,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../data/services/workspace_service.dart';
 
-enum WorkspaceStato { iniziale, caricamento, successo, errore, permessoNegato }
+enum WorkspaceStato {
+  iniziale,
+  caricamento,
+  successo,
+  errore,
+  permessoNegato,
+  gpsDisattivato
+}
 
 class WorkspaceViewModel extends ChangeNotifier {
   final WorkspaceService _service = WorkspaceService();
@@ -53,6 +60,8 @@ class WorkspaceViewModel extends ChangeNotifier {
       permesso = await Geolocator.requestPermission();
       if (permesso == LocationPermission.denied) {
         _messaggioErrore = 'Permesso di geolocalizzazione negato.';
+        _stato = WorkspaceStato.gpsDisattivato;
+        notifyListeners();
         return false;
       }
     }
