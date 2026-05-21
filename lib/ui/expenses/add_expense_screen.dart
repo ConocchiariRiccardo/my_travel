@@ -6,14 +6,18 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../auth/auth_view_model.dart';
-import '../../data/repositories/spesa_repository.dart';
 import '../../data/services/ocr_service.dart';
 import '../../domain/models/spesa.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final String viaggioId;
+  final SpesaRepository? spesaRepository;
 
-  const AddExpenseScreen({super.key, required this.viaggioId});
+  const AddExpenseScreen({
+    super.key,
+    required this.viaggioId,
+    this.spesaRepository,
+  });
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -23,7 +27,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descrizioneController = TextEditingController();
   final _importoController = TextEditingController();
-  final _spesaRepo = SpesaRepository();
+  late final SpesaRepository _spesaRepo;
   final _ocrService = OcrService();
   final _uuid = const Uuid();
   final DateFormat _dateFormat = DateFormat('dd MMMM yyyy', 'it_IT');
@@ -41,6 +45,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     'Carburante',
     'Altro',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _spesaRepo = widget.spesaRepository ?? SpesaRepository();
+  }
 
   @override
   void dispose() {

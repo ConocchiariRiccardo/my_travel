@@ -3,14 +3,18 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../auth/auth_view_model.dart';
-import '../home/home_view_model.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
 import '../../data/repositories/viaggio_repository.dart';
 import '../../data/services/notification_service.dart';
 
 class AddTripScreen extends StatefulWidget {
-  const AddTripScreen({super.key});
+  final ViaggioRepository? viaggioRepository;
+
+  const AddTripScreen({
+    super.key,
+    this.viaggioRepository,
+  });
 
   @override
   State<AddTripScreen> createState() => _AddTripScreenState();
@@ -21,7 +25,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
   final _nomeController = TextEditingController();
   final _destinazioneController = TextEditingController();
   final _attivitaController = TextEditingController();
-  final _viaggioRepo = ViaggioRepository();
+  late final ViaggioRepository _viaggioRepo;
   final _uuid = const Uuid();
 
   DateTime? _dataInizio;
@@ -37,6 +41,12 @@ class _AddTripScreenState extends State<AddTripScreen> {
     _destinazioneController.dispose();
     _attivitaController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _viaggioRepo = widget.viaggioRepository ?? ViaggioRepository();
   }
 
   // Apre il DatePicker e salva la data selezionata

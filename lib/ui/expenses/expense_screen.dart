@@ -7,8 +7,13 @@ import 'expense_view_model.dart';
 
 class ExpenseScreen extends StatefulWidget {
   final String viaggioId;
+  final ExpenseViewModel? viewModel;
 
-  const ExpenseScreen({super.key, required this.viaggioId});
+  const ExpenseScreen({
+    super.key,
+    required this.viaggioId,
+    this.viewModel,
+  });
 
   @override
   State<ExpenseScreen> createState() => _ExpenseScreenState();
@@ -16,19 +21,23 @@ class ExpenseScreen extends StatefulWidget {
 
 class _ExpenseScreenState extends State<ExpenseScreen> {
   late final ExpenseViewModel _viewModel;
+  late final bool _ownsViewModel;
   final DateFormat _dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
 
   @override
   void initState() {
     super.initState();
-    _viewModel = ExpenseViewModel();
+    _ownsViewModel = widget.viewModel == null;
+    _viewModel = widget.viewModel ?? ExpenseViewModel();
     final userId = context.read<AuthViewModel>().currentUser!.uid;
     _viewModel.inizializza(userId, widget.viaggioId);
   }
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (_ownsViewModel) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 
@@ -61,34 +70,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         return Colors.green.shade600;
       default:
         return Colors.grey.shade600;
-    }
-  }
-
-  Future<void> _confermaElimina(
-    BuildContext context,
-    String userId,
-    Spesa spesa,
-  ) async {
-    final conferma = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Elimina spesa'),
-        content: Text('Eliminare "${spesa.descrizione}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annulla'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Elimina'),
-          ),
-        ],
-      ),
-    );
-    if (conferma == true) {
-      await _viewModel.elimina(userId, widget.viaggioId, spesa.id);
     }
   }
 
