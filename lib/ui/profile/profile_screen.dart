@@ -69,6 +69,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (conferma == true && mounted) {
       await context.read<AuthViewModel>().logout();
+      if (!mounted) return;
+      // Svuotiamo l'intero stack di navigazione e andiamo al login
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
 
