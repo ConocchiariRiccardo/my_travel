@@ -24,7 +24,7 @@ class OcrService {
   Future<OcrResult> analizzaScontrino(File immagine) async {
     // Configura il modello Gemini imponendogli di sputare solo JSON
     final model = GenerativeModel(
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
         responseMimeType: 'application/json',
@@ -32,9 +32,12 @@ class OcrService {
     );
 
     final bytes = await immagine.readAsBytes();
-    final mimeType = immagine.path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-    
-    final promptTesto = TextPart('''Analizza questo scontrino/ricevuta e restituisci 
+    final mimeType = immagine.path.toLowerCase().endsWith('.png')
+        ? 'image/png'
+        : 'image/jpeg';
+
+    final promptTesto =
+        TextPart('''Analizza questo scontrino/ricevuta e restituisci 
 SOLO un oggetto JSON valido con questi campi esatti, senza aggiungere altro testo:
 {
   "descrizione": "descrizione sintetica della spesa (es. Pranzo, Hotel, Taxi)",
@@ -61,7 +64,8 @@ SOLO un oggetto JSON valido con questi campi esatti, senza aggiungere altro test
 
       // Parse chirurgico della data
       DateTime? dataEstratta;
-      if (datiEstratti['data'] != null && datiEstratti['data'].toString() != 'null') {
+      if (datiEstratti['data'] != null &&
+          datiEstratti['data'].toString() != 'null') {
         try {
           dataEstratta = DateTime.parse(datiEstratti['data'].toString());
         } catch (_) {
@@ -76,12 +80,12 @@ SOLO un oggetto JSON valido con questi campi esatti, senza aggiungere altro test
       }
 
       return OcrResult(
-        descrizione: datiEstratti['descrizione']?.toString() ?? 'Spesa generica',
+        descrizione:
+            datiEstratti['descrizione']?.toString() ?? 'Spesa generica',
         importo: importoEstratto,
         categoria: datiEstratti['categoria']?.toString() ?? 'Altro',
         data: dataEstratta,
       );
-      
     } catch (e) {
       throw Exception('Errore durante l\'analisi AI: $e');
     }

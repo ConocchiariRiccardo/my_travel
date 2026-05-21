@@ -144,7 +144,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pushNamed(context, '/expense/add',
+        onPressed: () => Navigator.pushNamed(context, '/expenses/add',
             arguments: widget.viaggioId),
         backgroundColor: const Color(0xFF1E3A8A),
         icon: const Icon(Icons.add_a_photo_outlined, color: Colors.white),

@@ -87,6 +87,12 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             case WorkspaceStato.caricamento:
               return const _LoadingState();
 
+            case WorkspaceStato.gpsDisattivato:
+              return _GpsDisattivatoState(
+                messaggio: _viewModel.messaggioErrore ?? '',
+                onRiprova: _viewModel.ricarica,
+              );
+
             case WorkspaceStato.permessoNegato:
               return _PermessoNegatoState(
                 messaggio: _viewModel.messaggioErrore ?? '',
@@ -548,6 +554,62 @@ class _ErroreState extends StatelessWidget {
               label: const Text('Riprova'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF1E3A8A),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GpsDisattivatoState extends StatelessWidget {
+  final String messaggio;
+  final VoidCallback onRiprova;
+
+  const _GpsDisattivatoState({
+    required this.messaggio,
+    required this.onRiprova,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.gps_off_rounded, size: 72, color: Colors.orange),
+            const SizedBox(height: 16),
+            const Text(
+              'GPS non attivo',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              messaggio,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () async {
+                await Geolocator.openLocationSettings();
+              },
+              icon: const Icon(Icons.location_on_outlined),
+              label: const Text('Attiva GPS'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.orange,
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: onRiprova,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Ho attivato il GPS, riprova'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1E3A8A),
               ),
             ),
           ],

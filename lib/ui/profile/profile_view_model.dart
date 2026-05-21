@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/models/utente.dart';
 import '../../data/repositories/utente_repository.dart';
+import 'dart:io';
 
 class ProfileViewModel extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -78,6 +79,34 @@ class ProfileViewModel extends ChangeNotifier {
       _successMessage = 'Nome aggiornato con successo!';
     } catch (_) {
       _errorMessage = 'Errore durante l\'aggiornamento. Riprova.';
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> aggiornaFotoProfilo(File immagine) async {
+    _isSaving = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+
+    try {
+      final uid = _auth.currentUser!.uid;
+
+      final fotoUrl = await _utenteRepo.caricaFotoProfilo(uid, immagine);
+      await _utenteRepo.aggiornaFotoProfilo(uid, fotoUrl);
+
+      _utente = Utente(
+        id: _utente!.id,
+        email: _utente!.email,
+        nomeCompleto: _utente!.nomeCompleto,
+        fotoProfiloUrl: fotoUrl,
+      );
+
+      _successMessage = 'Foto profilo aggiornata!';
+    } catch (_) {
+      _errorMessage = 'Errore durante il caricamento della foto. Riprova.';
     } finally {
       _isSaving = false;
       notifyListeners();
