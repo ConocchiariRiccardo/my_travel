@@ -13,7 +13,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -163,7 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     viaggio: viaggio,
                     onTap: () {
                       // Fase 3: naviga al dettaglio
-                      Navigator.pushNamed(context, '/trip-detail', arguments: viaggio.id);
+                      Navigator.pushNamed(context, '/trip',
+                          arguments: viaggio.id);
                     },
                     onDelete: () => homeVm.elimina(userId, viaggio.id),
                   );
