@@ -63,6 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthViewModel>().isLoading;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double logoSize = (screenWidth * 0.6).clamp(140.0, 320.0) as double;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -75,10 +77,15 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 60),
 
               // Logo
-              const Icon(
-                Icons.flight_takeoff_rounded,
-                size: 72,
-                color: Color(0xFF1E3A8A),
+              Center(
+                child: SizedBox(
+                  width: logoSize,
+                  height: logoSize,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
