@@ -4,6 +4,7 @@ import '../auth/auth_view_model.dart';
 import 'profile_view_model.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -232,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               backgroundColor: const Color(0xFF1E3A8A),
                               backgroundImage:
                                   profileVm.utente?.fotoProfiloUrl != null
-                                      ? NetworkImage(
+                                      ? CachedNetworkImageProvider(
                                           profileVm.utente!.fotoProfiloUrl!)
                                       : null,
                               child: profileVm.utente?.fotoProfiloUrl == null

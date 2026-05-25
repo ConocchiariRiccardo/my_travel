@@ -125,6 +125,7 @@ class WorkspaceViewModel extends ChangeNotifier {
 
   void selezionaLuogo(WorkspacePlace? luogo) {
     _luogoSelezionato = luogo;
+    _costruisciMarker();
     notifyListeners();
   }
 
@@ -138,15 +139,18 @@ class WorkspaceViewModel extends ChangeNotifier {
 
   void _costruisciMarker() {
     _marker = _luoghiFiltrati.map((luogo) {
+      final isSelezionato = _luogoSelezionato?.placeId == luogo.placeId;
+
       return Marker(
         markerId: MarkerId(luogo.placeId),
         position: luogo.posizione,
+        zIndex: isSelezionato ? 10.0 : 1.0,
         infoWindow: InfoWindow(
           title: '${luogo.iconaTipo} ${luogo.nome}',
           snippet: luogo.indirizzo,
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(
-          _huePerTipo(luogo.tipo),
+          isSelezionato ? BitmapDescriptor.hueAzure : _huePerTipo(luogo.tipo),
         ),
         onTap: () => selezionaLuogo(luogo),
       );

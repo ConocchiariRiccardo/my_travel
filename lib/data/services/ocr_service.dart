@@ -18,10 +18,11 @@ class OcrResult {
 }
 
 class OcrService {
-  static const String _apiKey = 'AIzaSyC16NdBax9Pr-VuEJhW7NQJfyEI_VTILWc';
+  static const String _apiKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: 'AIzaSyBnogFvG6LxxAhAYNYjHRpJELOjCLJ8vH0',
+  );
 
-  // Chiamata diretta all'endpoint v1
-  // con il modello gemini-1.5-flash che supporta immagini sul free tier
   static const String _endpoint =
       'https://generativelanguage.googleapis.com/v1beta/models/'
       'gemini-2.5-flash:generateContent?key=$_apiKey';

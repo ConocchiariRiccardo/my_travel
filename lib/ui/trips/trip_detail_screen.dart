@@ -410,7 +410,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                            key: const Key('manage-expenses-button'),
+                          key: const Key('manage-expenses-button'),
                           onPressed: () {
                             // Fase 5: gestione spese
                             Navigator.pushNamed(context, '/expenses',

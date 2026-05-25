@@ -36,7 +36,9 @@ class ProfileViewModel extends ChangeNotifier {
 
       final doc = await _utenteRepo.getUtente(uid);
 
-      if (_utente == null) {
+      if (doc != null) {
+        _utente = doc;
+      } else {
         _utente = Utente(
           id: uid,
           email: _auth.currentUser?.email ?? '',

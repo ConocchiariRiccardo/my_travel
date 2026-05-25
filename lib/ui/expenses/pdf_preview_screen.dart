@@ -26,7 +26,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
 
   bool _isLoading = true;
   String? _errorMessage;
-  List<int>? _pdfBytes;
+  Uint8List? _pdfBytesCache;
   Viaggio? _viaggio;
   List<Spesa> _spese = [];
 
@@ -68,11 +68,13 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
       _viaggio = viaggioTrovato;
 
       // Genera il PDF
-      _pdfBytes = await _pdfService.generaReportSpese(
+      final bytes = await _pdfService.generaReportSpese(
         viaggio: _viaggio!,
         spese: _spese,
         nomeUtente: nomeUtente,
       );
+      // Converte una volta sola e cachea il risultato
+      _pdfBytesCache = Uint8List.fromList(bytes);
 
       setState(() => _isLoading = false);
     } catch (e) {
@@ -94,7 +96,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          if (!_isLoading && _pdfBytes != null)
+          if (!_isLoading && _pdfBytesCache != null)
             IconButton(
               icon: const Icon(Icons.share_outlined),
               tooltip: 'Condividi o Salva',
@@ -164,7 +166,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
 
     // Anteprima PDF interattiva (zoom, scroll, condivisione nativa)
     return PdfPreview(
-      build: (_) async => Uint8List.fromList(_pdfBytes!),
+      build: (_) async => _pdfBytesCache!,
       allowPrinting: true,
       allowSharing: false,
       canChangeOrientation: false,
@@ -191,11 +193,11 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
   }
 
   Future<void> _condividiPdf() async {
-    if (_pdfBytes == null || _viaggio == null) return;
+    if (_pdfBytesCache == null || _viaggio == null) return;
 
     try {
       await Printing.sharePdf(
-        bytes: Uint8List.fromList(_pdfBytes!),
+        bytes: _pdfBytesCache!,
         filename: 'report_${_viaggio!.destinazione.toLowerCase()}'
             '_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );

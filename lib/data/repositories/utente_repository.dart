@@ -22,7 +22,6 @@ class UtenteRepository {
 
   Future<void> aggiornaNome(String userId, String nuovoNome) async {
     await _ref.doc(userId).update({'nomeCompleto': nuovoNome});
-    await _auth.currentUser?.updateDisplayName(nuovoNome);
   }
 
   /// Carica la foto profilo su Firebase Storage e restituisce il download URL.

@@ -10,6 +10,7 @@ class CalendarViewModel extends ChangeNotifier {
   DateTime _giornoSelezionato = DateTime.now();
   DateTime _meseVisualizzato = DateTime.now();
   bool _isLoading = true;
+  Map<DateTime, List<Viaggio>> _eventiCache = {};
 
   StreamSubscription<List<Viaggio>>? _subscription;
 
@@ -20,29 +21,33 @@ class CalendarViewModel extends ChangeNotifier {
 
   // Restituisce i viaggi che coprono il giorno selezionato
   List<Viaggio> get viaggiDelGiornoSelezionato {
-    return _viaggi.where((v) => _giornoInViaggio(_giornoSelezionato, v)).toList();
+    return _viaggi
+        .where((v) => _giornoInViaggio(_giornoSelezionato, v))
+        .toList();
   }
 
-  // Costruisce la mappa giorno → lista viaggi (usata da table_calendar)
-  Map<DateTime, List<Viaggio>> get eventiPerGiorno {
-    final Map<DateTime, List<Viaggio>> mappa = {};
+  // Getter: restituisce la cache precalcolata, O(1).
+  Map<DateTime, List<Viaggio>> get eventiPerGiorno => _eventiCache;
 
+  // Ricalcola la mappa una sola volta quando arrivano nuovi dati dallo stream.
+  void _aggiornaCache() {
+    final Map<DateTime, List<Viaggio>> mappa = {};
     for (final viaggio in _viaggi) {
       DateTime cursore = _normalizza(viaggio.dataInizio);
       final fine = _normalizza(viaggio.dataFine);
-
       while (!cursore.isAfter(fine)) {
         mappa[cursore] = [...(mappa[cursore] ?? []), viaggio];
         cursore = cursore.add(const Duration(days: 1));
       }
     }
-    return mappa;
+    _eventiCache = mappa;
   }
 
   void inizializza(String userId) {
     _subscription = _viaggioRepo.streamAttivi(userId).listen(
       (lista) {
         _viaggi = lista;
+        _aggiornaCache();
         _isLoading = false;
         notifyListeners();
       },

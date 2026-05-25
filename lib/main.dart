@@ -20,6 +20,7 @@ import 'data/services/notification_service.dart';
 import 'ui/profile/profile_screen.dart';
 import 'ui/profile/history_screen.dart';
 import 'ui/profile/profile_view_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,10 @@ Future<void> main() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
   } catch (e) {
     debugPrint("Firebase già inizializzato, ignoro e vado avanti.");

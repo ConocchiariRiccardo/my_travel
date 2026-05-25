@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
 import '../../data/services/notification_service.dart';
@@ -22,19 +23,30 @@ class ViaggioRepository {
         .where('isCompletato', isEqualTo: false)
         .orderBy('dataInizio')
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
-            .toList());
+        .map((snap) {
+      final oggi = DateTime.now();
+      final mezzanotteOggi = DateTime(oggi.year, oggi.month, oggi.day);
+      return snap.docs
+          .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+          .where((v) =>
+              v.dataFine.isAfter(mezzanotteOggi) || isSameDay(v.dataFine, oggi))
+          .toList();
+    });
   }
 
   Stream<List<Viaggio>> streamCompletati(String userId) {
     return _ref(userId)
-        .where('isCompletato', isEqualTo: true)
         .orderBy('dataFine', descending: true)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
-            .toList());
+        .map((snap) {
+      final oggi = DateTime.now();
+      final mezzanotteOggi = DateTime(oggi.year, oggi.month, oggi.day);
+
+      return snap.docs
+          .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+          .where((v) => v.dataFine.isBefore(mezzanotteOggi))
+          .toList();
+    });
   }
 
   Future<String> crea(String userId, Viaggio viaggio) async {
@@ -48,10 +60,13 @@ class ViaggioRepository {
 
   Future<void> elimina(String userId, String viaggioId) async {
     final attivita = await _attivitaRef(userId, viaggioId).get();
+
+    final batch = _db.batch();
     for (final doc in attivita.docs) {
-      await doc.reference.delete();
+      batch.delete(doc.reference);
     }
-    await _ref(userId).doc(viaggioId).delete();
+    batch.delete(_ref(userId).doc(viaggioId));
+    await batch.commit();
   }
 
   Future<void> completa(String userId, String viaggioId) async {

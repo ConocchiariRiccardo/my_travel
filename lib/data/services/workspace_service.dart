@@ -49,32 +49,36 @@ class WorkspaceService {
     final lat = posizione.latitude;
     final lon = posizione.longitude;
 
-    // FIX BUG 1: aggiunto "way" per ogni categoria.
-    // In OSM la maggior parte dei luoghi è mappata come poligono (way),
-    // non come punto (node). Senza "way" si perde l'80%+ dei risultati.
-    // "out center;" restituisce le coordinate del centro geometrico per i way.
+    // OTTMIZZAZIONE ARCHITETTO: Filtro Qualità
+    // Le biblioteche e i coworking vengono presi sempre.
+    // I caffè vengono presi SOLO se hanno il tag "internet_access" compilato.
     final query = '''
 [out:json][timeout:25];
 (
-  node["amenity"="cafe"](around:$raggioMetri,$lat,$lon);
-  way["amenity"="cafe"](around:$raggioMetri,$lat,$lon);
   node["amenity"="library"](around:$raggioMetri,$lat,$lon);
   way["amenity"="library"](around:$raggioMetri,$lat,$lon);
+  
   node["office"="coworking"](around:$raggioMetri,$lat,$lon);
   way["office"="coworking"](around:$raggioMetri,$lat,$lon);
+  
   node["amenity"="coworking_space"](around:$raggioMetri,$lat,$lon);
   way["amenity"="coworking_space"](around:$raggioMetri,$lat,$lon);
+  
+  node["amenity"="cafe"]["internet_access"](around:$raggioMetri,$lat,$lon);
+  way["amenity"="cafe"]["internet_access"](around:$raggioMetri,$lat,$lon);
 );
 out center;
 ''';
 
     try {
-      final response = await http
-          .post(
-            Uri.parse(_overpassUrl),
-            body: {'data': query},
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await http.post(
+        Uri.parse(_overpassUrl),
+        headers: {
+          'User-Agent':
+              'MyTravelApp/1.0 (Contatto: omar.rancitelli@univaq.student.it)'
+        },
+        body: {'data': query},
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -85,18 +89,28 @@ out center;
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final elements = decoded['elements'] as List<dynamic>? ?? [];
 
+      // DEBUG: Stampiamo in console quanti risultati veri ci manda OSM
+      debugPrint(
+          '🌍 OVERPASS API: Ricevuti ${elements.length} elementi grezzi da OSM.');
+
       final List<WorkspacePlace> risultati = [];
 
       for (final e in elements) {
         final tags = e['tags'] as Map<String, dynamic>? ?? {};
 
-        // Salta luoghi senza nome: sono rumori di dati non utili all'utente
-        final nome = tags['name'] as String?;
-        if (nome == null || nome.trim().isEmpty) continue;
+        // OTTMIZZAZIONE ARCHITETTO: Non scartiamo i luoghi senza nome!
+        // Diamo un nome generico in base alla loro categoria.
+        String? nome = tags['name'] as String?;
+        if (nome == null || nome.trim().isEmpty) {
+          if (tags['amenity'] == 'cafe') {
+            nome = 'Caffè Locale';
+          } else if (tags['amenity'] == 'library') {
+            nome = 'Biblioteca Pubblica';
+          } else {
+            nome = 'Spazio Coworking';
+          }
+        }
 
-        // FIX BUG 2: cast sicuro via (num).toDouble() invece di "as double".
-        // FIX BUG 1 (parser): i "node" hanno lat/lon diretti nel JSON,
-        // i "way" li hanno sotto la chiave "center" (grazie a "out center;").
         final double? elLat;
         final double? elLon;
 
@@ -123,9 +137,7 @@ out center;
           tipo = 'coworking';
         }
 
-        // FIX BUG 3: priorità corretta dei tag OSM per l'indirizzo.
-        // "addr:street" è il tag standard OSM, non "street".
-        // Aggiungiamo anche "addr:housenumber" per completezza.
+        // Indirizzo
         String indirizzo = 'Indirizzo sulla mappa';
         final strada = tags['addr:street'] as String?;
         final numero = tags['addr:housenumber'] as String?;
@@ -143,11 +155,7 @@ out center;
             nome: nome.trim(),
             indirizzo: indirizzo,
             posizione: LatLng(elLat, elLon),
-            // OSM non ha un sistema di rating: null è corretto e onesto.
-            // La UI in _WorkspaceTile già gestisce il caso valutazione == null.
             valutazione: null,
-            // OSM ha "opening_hours" ma il parsing è estremamente complesso.
-            // Per un progetto accademico, true è un'approssimazione accettabile.
             isAperto: true,
             tipo: tipo,
             fotoReference: null,

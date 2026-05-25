@@ -14,10 +14,18 @@ class TripCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Statico: allocato una volta sola per tutta la vita dell'app.
+  static final DateFormat _dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
+
+  static const BoxShadow _cardShadow = BoxShadow(
+    color: Color(0x14000000), // Colors.black con opacity 0.08 in hex
+    blurRadius: 12,
+    offset: Offset(0, 4),
+  );
+
   @override
   Widget build(BuildContext context) {
     final giorni = viaggio.giorniAllaPartenza;
-    final dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
 
     return GestureDetector(
       onTap: onTap,
@@ -25,13 +33,7 @@ class TripCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: const [_cardShadow],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -129,7 +131,7 @@ class TripCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${dateFormat.format(viaggio.dataInizio)} → ${dateFormat.format(viaggio.dataFine)}',
+                          '${_dateFormat.format(viaggio.dataInizio)} → ${_dateFormat.format(viaggio.dataFine)}',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 12,

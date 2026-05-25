@@ -21,28 +21,13 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     super.initState();
     _viewModel = WorkspaceViewModel();
     _viewModel.inizializza();
-    _viewModel.addListener(_onViewModelChange);
   }
 
   @override
   void dispose() {
-    _viewModel.removeListener(_onViewModelChange);
     _viewModel.dispose();
     _mapController?.dispose();
     super.dispose();
-  }
-
-  // Quando il ViewModel aggiorna la posizione,
-  // centra la mappa automaticamente
-  void _onViewModelChange() {
-    if (_viewModel.posizioneUtente != null && _mapController != null) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          _viewModel.posizioneUtente!,
-          14.5,
-        ),
-      );
-    }
   }
 
   // Centra la mappa su un luogo selezionato

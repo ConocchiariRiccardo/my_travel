@@ -348,6 +348,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                 Image.file(
                                   _immagineSelezionata!,
                                   fit: BoxFit.cover,
+                                  cacheWidth: 800,
                                 ),
                                 Positioned(
                                   bottom: 8,
