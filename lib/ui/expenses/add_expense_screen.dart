@@ -64,8 +64,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: sorgente,
-      imageQuality: 85,
-      maxWidth: 1200,
+      imageQuality: 70,
+      maxWidth: 800,
     );
 
     if (picked == null) return;
@@ -111,8 +111,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             erroreStringa.contains('limit');
 
         final String messaggioUtente = isQuotaError
-            ? '⏳ Limite richieste AI raggiunto. Riprova tra qualche minuto o inserisci i dati manualmente.'
-            : 'Estrazione automatica non riuscita. Inserisci i dati manualmente.';
+            ? '⏳ Limite richieste AI raggiunto. Riprova tra qualche minuto o inserisci i dati manualmente.\nDettaglio: $e'
+            : 'Estrazione automatica non riuscita. Inserisci i dati manualmente.\nDettaglio: $e';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
