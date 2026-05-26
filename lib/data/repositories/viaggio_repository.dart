@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../domain/models/viaggio.dart';
 import '../../domain/models/attivita.dart';
-import '../../data/services/notification_service.dart';
 
 class ViaggioRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -104,5 +103,15 @@ class ViaggioRepository {
     String attivitaId,
   ) async {
     await _attivitaRef(userId, viaggioId).doc(attivitaId).delete();
+  }
+
+  Future<List<Viaggio>> getViaggiFuturi(String userId) async {
+    final snapshot = await _ref(userId).get();
+    final now = DateTime.now();
+
+    return snapshot.docs
+        .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+        .where((viaggio) => viaggio.dataInizio.isAfter(now))
+        .toList();
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../auth/auth_view_model.dart';
-import 'profile_view_model.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'profile_view_model.dart';
+import '../auth/auth_view_model.dart';
+import 'subpages/edit_profile_screen.dart';
+import 'subpages/settings_screen.dart';
+import 'subpages/notification_settings_screen.dart';
+import 'subpages/support_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,411 +16,190 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController _nomeController = TextEditingController();
-  bool _isEditing = false;
-
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _salvaModifiche() async {
-    final vm = context.read<ProfileViewModel>();
-    await vm.aggiornaNome(_nomeController.text);
-
-    if (!mounted) return;
-
-    if (vm.successMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(vm.successMessage!),
-          backgroundColor: Colors.green,
-        ),
-      );
-      setState(() => _isEditing = false);
-    } else if (vm.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(vm.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-    vm.clearMessages();
-  }
-
-  Future<void> _confermaLogout() async {
-    final conferma = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Vuoi uscire dall\'account?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annulla'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Esci'),
-          ),
-        ],
-      ),
-    );
-
-    if (conferma == true && mounted) {
-      await context.read<AuthViewModel>().logout();
-      if (!mounted) return;
-      // Svuotiamo l'intero stack di navigazione e andiamo al login
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-    }
-  }
-
-  void _mostraSceltaFoto(BuildContext context, ProfileViewModel profileVm) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Cambia foto profilo',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF1E3A8A),
-                  child: Icon(Icons.camera_alt_outlined, color: Colors.white),
-                ),
-                title: const Text('Fotocamera'),
-                subtitle: const Text('Scatta una foto'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _selezionaFoto(ImageSource.camera, profileVm);
-                },
-              ),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF3B82F6),
-                  child:
-                      Icon(Icons.photo_library_outlined, color: Colors.white),
-                ),
-                title: const Text('Galleria'),
-                subtitle: const Text('Scegli dalla libreria foto'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _selezionaFoto(ImageSource.gallery, profileVm);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _selezionaFoto(
-    ImageSource sorgente,
-    ProfileViewModel profileVm,
-  ) async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: sorgente,
-      imageQuality: 80,
-      maxWidth: 800,
-    );
-
-    if (picked == null || !mounted) return;
-
-    await profileVm.aggiornaFotoProfilo(File(picked.path));
-
-    if (!mounted) return;
-
-    if (profileVm.successMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(profileVm.successMessage!),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else if (profileVm.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(profileVm.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-    profileVm.clearMessages();
-  }
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
 
   @override
   Widget build(BuildContext context) {
     final profileVm = context.watch<ProfileViewModel>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Profilo'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
+        title: const Text(
+          'Profilo',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 17,
+          ),
         ),
-        actions: [
-          if (!_isEditing)
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Modifica nome',
-              onPressed: () {
-                _nomeController.text = profileVm.utente?.nomeCompleto ?? '';
-                setState(() => _isEditing = true);
-              },
-            )
-          else
-            TextButton(
-              onPressed: profileVm.isSaving ? null : _salvaModifiche,
-              child: profileVm.isSaving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Salva',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-        ],
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: backgroundColor,
+        foregroundColor: Colors.black87,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: profileVm.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            )
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               children: [
-                // --- Avatar ---
-                Center(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () => _mostraSceltaFoto(context, profileVm),
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            CircleAvatar(
-                              radius: 44,
-                              backgroundColor: const Color(0xFF1E3A8A),
-                              backgroundImage:
-                                  profileVm.utente?.fotoProfiloUrl != null
-                                      ? CachedNetworkImageProvider(
-                                          profileVm.utente!.fotoProfiloUrl!)
-                                      : null,
-                              child: profileVm.utente?.fotoProfiloUrl == null
-                                  ? Text(
-                                      _iniziali(
-                                          profileVm.utente?.nomeCompleto ??
-                                              profileVm.email),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                            // Badge di modifica
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1E3A8A),
-                                shape: BoxShape.circle,
-                              ),
-                              child: profileVm.isSaving
-                                  ? const SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.camera_alt,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        profileVm.utente?.nomeCompleto ?? 'Profilo',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        profileVm.email,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-
-                // --- Modifica nome (visibile solo in editing) ---
-                if (_isEditing) ...[
-                  _buildSectionTitle('Modifica nome'),
-                  const SizedBox(height: 8),
-                  _buildCard(children: [
-                    TextFormField(
-                      controller: _nomeController,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome completo',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: InputBorder.none,
+                _buildHeaderCard(profileVm),
+                const SizedBox(height: 28),
+                _buildSectionLabel('Account'),
+                const SizedBox(height: 12),
+                _buildMenuGroup([
+                  _buildMenuItem(
+                    icon: Icons.person_outline,
+                    title: 'My Profile',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EditProfileScreen(),
                       ),
                     ),
-                  ]),
-                  const SizedBox(height: 20),
-                ],
-
-                // --- Dati account ---
-                _buildSectionTitle('Account'),
-                const SizedBox(height: 8),
-                _buildCard(children: [
-                  _buildInfoRow(
-                    Icons.email_outlined,
-                    'Email',
-                    profileVm.email,
                   ),
-                  const Divider(height: 1),
-                  _buildInfoRow(
-                    Icons.badge_outlined,
-                    'Nome',
-                    profileVm.utente?.nomeCompleto ?? 'Non impostato',
+                  _buildMenuItem(
+                    icon: Icons.settings_outlined,
+                    title: 'Settings',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    ),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.notifications_none_outlined,
+                    title: 'Notification',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationSettingsScreen(),
+                      ),
+                    ),
                   ),
                 ]),
-
-                const SizedBox(height: 20),
-
-                // --- Navigazione ---
-                _buildSectionTitle('Sezioni'),
-                const SizedBox(height: 8),
-                _buildCard(children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.history_rounded,
-                      color: Color(0xFF1E3A8A),
-                    ),
-                    title: const Text('Storico viaggi'),
-                    subtitle: const Text('Consulta le trasferte passate'),
-                    trailing: const Icon(Icons.chevron_right),
+                const SizedBox(height: 24),
+                _buildSectionLabel('Supporto'),
+                const SizedBox(height: 12),
+                _buildMenuGroup([
+                  _buildMenuItem(
+                    icon: Icons.history,
+                    title: 'Travel history',
                     onTap: () => Navigator.pushNamed(context, '/history'),
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.notifications_outlined,
-                      color: Color(0xFF1E3A8A),
+                  _buildMenuItem(
+                    icon: Icons.help_outline,
+                    title: 'FAQ',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const SupportScreen(section: SupportSection.faq),
+                      ),
                     ),
-                    title: const Text('Notifiche'),
-                    subtitle:
-                        const Text('Promemoria partenza automatici attivi'),
-                    trailing: const Icon(
-                      Icons.check_circle_outline,
-                      color: Colors.green,
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.info_outline,
+                    title: 'About App',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const SupportScreen(section: SupportSection.about),
+                      ),
                     ),
                   ),
                 ]),
-
+                const SizedBox(height: 32),
+                _buildLogoutButton(),
                 const SizedBox(height: 20),
-
-                // --- Bottone logout ---
-                _buildSectionTitle('Sessione'),
-                const SizedBox(height: 8),
-                _buildCard(children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.logout_rounded,
-                      color: Colors.red,
-                    ),
-                    title: const Text(
-                      'Esci dall\'account',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    onTap: _confermaLogout,
-                  ),
-                ]),
-
-                const SizedBox(height: 40),
-
-                // --- Version footer ---
-                Center(
-                  child: Text(
-                    'MyTravel v1.0.0 · Progetto Accademico',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade400,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
               ],
             ),
     );
   }
 
-  Widget _buildSectionTitle(String titolo) {
+  Widget _buildSectionLabel(String title) {
     return Text(
-      titolo.toUpperCase(),
-      style: TextStyle(
-        fontSize: 11,
+      title,
+      style: const TextStyle(
+        fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Colors.grey.shade500,
-        letterSpacing: 0.8,
+        color: Colors.black87,
       ),
     );
   }
 
-  Widget _buildCard({required List<Widget> children}) {
+  Widget _buildHeaderCard(ProfileViewModel vm) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 34,
+            backgroundColor: primaryColor,
+            backgroundImage: vm.utente?.fotoProfiloUrl != null
+                ? CachedNetworkImageProvider(vm.utente!.fotoProfiloUrl!)
+                : null,
+            child: vm.utente?.fotoProfiloUrl == null
+                ? const Icon(Icons.person, size: 36, color: Colors.white)
+                : null,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vm.utente?.nomeCompleto?.trim().isNotEmpty == true
+                      ? vm.utente!.nomeCompleto!
+                      : 'Utente',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  vm.email,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF757575),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuGroup(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -428,29 +209,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icona, String label, String valore) {
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
     return ListTile(
-      leading: Icon(icona, color: const Color(0xFF1E3A8A)),
-      title: Text(
-        label,
-        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
+      leading: Icon(
+        icon,
+        color: Colors.black87,
+        size: 22,
       ),
-      subtitle: Text(
-        valore,
+      title: Text(
+        title,
         style: const TextStyle(
           fontSize: 15,
-          color: Colors.black87,
           fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        size: 20,
+        color: Color(0xFF9E9E9E),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        onTap: _confermaLogout,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+        leading: const Icon(
+          Icons.logout,
+          color: Color(0xFFF44336),
+        ),
+        title: const Text(
+          'Logout',
+          style: TextStyle(
+            color: Color(0xFFF44336),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          size: 20,
+          color: Color(0xFF9E9E9E),
         ),
       ),
     );
   }
 
-  String _iniziali(String testo) {
-    final parole = testo.trim().split(' ');
-    if (parole.length >= 2) {
-      return '${parole[0][0]}${parole[1][0]}'.toUpperCase();
+  Future<void> _confermaLogout() async {
+    final conferma = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        title: const Text('Logout'),
+        content: const Text('Vuoi uscire dall\'account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(
+              'Annulla',
+              style: TextStyle(color: Color(0xFF757575)),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFF44336),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Esci'),
+          ),
+        ],
+      ),
+    );
+
+    if (conferma == true && mounted) {
+      await context.read<AuthViewModel>().logout();
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
-    return testo.isNotEmpty ? testo[0].toUpperCase() : '?';
   }
 }

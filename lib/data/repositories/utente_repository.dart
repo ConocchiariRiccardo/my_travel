@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/models/utente.dart';
 import 'dart:io';
+import 'dart:developer';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class UtenteRepository {
@@ -43,5 +44,21 @@ class UtenteRepository {
   Future<void> aggiornaFotoProfilo(String userId, String fotoUrl) async {
     await _ref.doc(userId).update({'fotoProfiloUrl': fotoUrl});
     await _auth.currentUser?.updatePhotoURL(fotoUrl);
+  }
+
+  Future<void> eliminaFotoProfilo(String userId) async {
+    // 1. Cancella il file da Firebase Storage
+    try {
+      await FirebaseStorage.instance.ref('profile_photos/$userId.jpg').delete();
+    } catch (e) {
+      // Ignoriamo se il file non esiste già su storage
+      log("Nessun file da eliminare su Storage: $e");
+    }
+
+    // 2. Aggiorna il database Firestore
+    await _ref.doc(userId).update({'fotoProfiloUrl': FieldValue.delete()});
+    
+    // 3. Aggiorna Firebase Auth
+    await _auth.currentUser?.updatePhotoURL(null);
   }
 }

@@ -1,14 +1,18 @@
 class Utente {
   final String id;
   final String email;
-  final String? nomeCompleto;
+  String? nomeCompleto;
   final String? fotoProfiloUrl;
+  String? dataNascita;
+  String? telefono;
 
-  const Utente({
+  Utente({
     required this.id,
     required this.email,
     this.nomeCompleto,
     this.fotoProfiloUrl,
+    this.dataNascita,
+    this.telefono,
   });
 
   Map<String, dynamic> toJson() {
@@ -16,6 +20,8 @@ class Utente {
       'email': email,
       'nomeCompleto': nomeCompleto,
       'fotoProfiloUrl': fotoProfiloUrl,
+      'dataNascita': dataNascita,
+      'telefono': telefono,
     };
   }
 
@@ -25,6 +31,8 @@ class Utente {
       email: json['email'] as String,
       nomeCompleto: json['nomeCompleto'] as String?,
       fotoProfiloUrl: json['fotoProfiloUrl'] as String?,
+      dataNascita: json['dataNascita'],
+      telefono: json['telefono'],
     );
   }
 }

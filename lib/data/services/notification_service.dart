@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import '../repositories/notification_repository.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -10,6 +11,9 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _inizializzato = false;
+
+  final NotificationPreferencesRepository _preferencesRepo =
+      NotificationPreferencesRepository();
 
   Future<void> inizializza() async {
     if (_inizializzato) return;
@@ -41,6 +45,7 @@ class NotificationService {
 
   /// Schedula una notifica il giorno prima della partenza alle 9:00
   Future<void> schedulaNotificaPartenza({
+    required String userId,
     required int id,
     required String nomeViaggio,
     required String destinazione,
@@ -48,7 +53,9 @@ class NotificationService {
   }) async {
     await inizializza();
 
-    // Notifica il giorno prima alle 9:00
+    final enabled = await _preferencesRepo.areTripRemindersEnabled(userId);
+    if (!enabled) return;
+
     final giornoNotifica = dataPartenza.subtract(const Duration(days: 1));
     final orarioNotifica = tz.TZDateTime(
       tz.local,
@@ -59,7 +66,6 @@ class NotificationService {
       0,
     );
 
-    // Se la data è già passata, non schedula
     if (orarioNotifica.isBefore(tz.TZDateTime.now(tz.local))) return;
 
     const androidDetails = AndroidNotificationDetails(
@@ -109,4 +115,3 @@ class NotificationService {
     return viaggioId.hashCode.abs() % 100000;
   }
 }
-//daje

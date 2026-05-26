@@ -29,6 +29,38 @@ class ProfileViewModel extends ChangeNotifier {
     _caricaProfilo();
   }
 
+  Future<void> salvaDatiProfilo({
+    required String nome,
+    required String? nascita,
+    required String? telefono,
+  }) async {
+    _isSaving = true;
+    notifyListeners();
+
+    try {
+      final uid = _auth.currentUser!.uid;
+
+      // Aggiorniamo su Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'nomeCompleto': nome,
+        'dataNascita': nascita,
+        'telefono': telefono,
+      });
+
+      // Aggiorniamo lo stato locale
+      _utente?.nomeCompleto = nome;
+      _utente?.dataNascita = nascita;
+      _utente?.telefono = telefono;
+
+      _successMessage = "Profilo aggiornato!";
+    } catch (e) {
+      _errorMessage = "Errore durante il salvataggio.";
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> _caricaProfilo() async {
     try {
       final uid = _auth.currentUser?.uid;
@@ -114,6 +146,58 @@ class ProfileViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> rimuoviFotoProfilo() async {
+    _isSaving = true;
+    notifyListeners();
+
+    try {
+      final uid = _auth.currentUser!.uid;
+      await _utenteRepo.eliminaFotoProfilo(uid);
+
+      // Aggiorniamo lo stato locale
+      _utente = Utente(
+        id: _utente!.id,
+        email: _utente!.email,
+        nomeCompleto: _utente!.nomeCompleto,
+        fotoProfiloUrl: null, // Foto rimosso
+      );
+      _successMessage = 'Foto profilo rimossa!';
+    } catch (e) {
+      _errorMessage = 'Errore durante la rimozione della foto.';
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> cambiaPassword(String vecchia, String nuova) async {
+    _isSaving = true;
+    notifyListeners();
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      // Riatenticazione necessaria per sicurezza
+      AuthCredential cred =
+          EmailAuthProvider.credential(email: user.email!, password: vecchia);
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword(nuova);
+      _successMessage = "Password aggiornata!";
+    } catch (e) {
+      _errorMessage = "Errore cambio password. Controlla la vecchia password.";
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  // Metodi segnaposto per le nuove funzionalità
+  void navigaPasswordSicurezza() => debugPrint("Navigazione a Sicurezza");
+  void navigaNotifiche() => debugPrint("Navigazione a Notifiche");
+  void navigaLingua() => debugPrint("Navigazione a Lingua");
+  void navigaSuDiNoi() => debugPrint("Navigazione a Su di noi");
+  void navigaTema() => debugPrint("Navigazione a Tema");
+  void navigaHelpCenter() => debugPrint("Navigazione a Help Center");
+  void navigaContattaci() => debugPrint("Navigazione a Contattaci");
 
   void clearMessages() {
     _errorMessage = null;

@@ -115,7 +115,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Seleziona le date di inizio e fine viaggio.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color(0xFFF44336),
         ),
       );
       return;
@@ -141,6 +141,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
       // 2. Schedula la notifica manualmente
       final notifService = NotificationService();
       await notifService.schedulaNotificaPartenza(
+        userId: userId,
         id: notifService.idDaViaggioId(viaggioId),
         nomeViaggio: nuovoViaggio.nome,
         destinazione: nuovoViaggio.destinazione,
@@ -157,7 +158,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Viaggio creato con successo! ✈️'),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF1E3A8A),
         ),
       );
 
@@ -167,7 +168,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Errore durante il salvataggio. Riprova.'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFF44336),
         ),
       );
     } finally {
@@ -402,4 +403,3 @@ class _AddTripScreenState extends State<AddTripScreen> {
     );
   }
 }
-//ciao
