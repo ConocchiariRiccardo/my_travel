@@ -12,10 +12,10 @@ class TripDetailViewModel extends ChangeNotifier {
   bool _isLoading = true;
   String? _errorMessage;
 
-  StreamSubscription<List<Viaggio>>? _viaggioSub;
+  StreamSubscription<List<Viaggio>>? _viaggioAttiviSub;
+  StreamSubscription<List<Viaggio>>? _viaggioStoricoSub;
   StreamSubscription<List<Attivita>>? _attivitaSub;
 
-  // --- Getters ---
   Viaggio? get viaggio => _viaggio;
   List<Attivita> get attivita => _attivita;
   bool get isLoading => _isLoading;
@@ -28,30 +28,63 @@ class TripDetailViewModel extends ChangeNotifier {
   }
 
   void inizializza(String userId, String viaggioId) {
-    // Stream del viaggio (per aggiornamenti real-time al titolo, date, ecc.)
-    _viaggioSub = _viaggioRepo.streamAttivi(userId).listen((lista) {
-      try {
-        _viaggio = lista.firstWhere((v) => v.id == viaggioId);
-      } catch (_) {
-        // Il viaggio potrebbe essere già nello storico
-      }
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (_) {
-      _errorMessage = 'Errore nel caricamento del viaggio.';
-      _isLoading = false;
-      notifyListeners();
-    });
+    _viaggioAttiviSub = _viaggioRepo.streamAttivi(userId).listen(
+      (lista) {
+        Viaggio? trovato;
+        for (final v in lista) {
+          if (v.id == viaggioId) {
+            trovato = v;
+            break;
+          }
+        }
 
-    // Stream delle attività
-    _attivitaSub =
-        _viaggioRepo.streamAttivita(userId, viaggioId).listen((lista) {
-      _attivita = lista;
-      notifyListeners();
-    }, onError: (_) {
-      _errorMessage = 'Errore nel caricamento delle attività.';
-      notifyListeners();
-    });
+        if (trovato != null) {
+          _viaggio = trovato;
+        }
+
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (_) {
+        _errorMessage = 'Errore nel caricamento del viaggio.';
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
+
+    _viaggioStoricoSub = _viaggioRepo.streamCompletati(userId).listen(
+      (lista) {
+        Viaggio? trovato;
+        for (final v in lista) {
+          if (v.id == viaggioId) {
+            trovato = v;
+            break;
+          }
+        }
+
+        if (trovato != null) {
+          _viaggio = trovato;
+          _isLoading = false;
+          notifyListeners();
+        }
+      },
+      onError: (_) {
+        _errorMessage = 'Errore nel caricamento del viaggio nello storico.';
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
+
+    _attivitaSub = _viaggioRepo.streamAttivita(userId, viaggioId).listen(
+      (lista) {
+        _attivita = lista;
+        notifyListeners();
+      },
+      onError: (_) {
+        _errorMessage = 'Errore nel caricamento delle attività.';
+        notifyListeners();
+      },
+    );
   }
 
   Future<void> toggle(
@@ -108,7 +141,8 @@ class TripDetailViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _viaggioSub?.cancel();
+    _viaggioAttiviSub?.cancel();
+    _viaggioStoricoSub?.cancel();
     _attivitaSub?.cancel();
     super.dispose();
   }

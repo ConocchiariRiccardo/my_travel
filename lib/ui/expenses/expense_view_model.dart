@@ -11,7 +11,6 @@ class ExpenseViewModel extends ChangeNotifier {
   String? _errorMessage;
   StreamSubscription<List<Spesa>>? _subscription;
 
-  // --- Getters ---
   List<Spesa> get spese => _spese;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -21,7 +20,6 @@ class ExpenseViewModel extends ChangeNotifier {
   String get totaleFormattato =>
       '€ ${totale.toStringAsFixed(2).replaceAll('.', ',')}';
 
-  // Raggruppa le spese per categoria per il riepilogo
   Map<String, double> get totalePerCategoria {
     final Map<String, double> mappa = {};
     for (final spesa in _spese) {
@@ -31,6 +29,10 @@ class ExpenseViewModel extends ChangeNotifier {
   }
 
   void inizializza(String userId, String viaggioId) {
+    _subscription?.cancel();
+    _isLoading = true;
+    notifyListeners();
+
     _subscription = _spesaRepo.streamSpese(userId, viaggioId).listen(
       (lista) {
         _spese = lista;
@@ -46,6 +48,23 @@ class ExpenseViewModel extends ChangeNotifier {
     );
   }
 
+  Future<bool> aggiorna(
+    String userId,
+    String viaggioId,
+    Spesa spesa,
+  ) async {
+    try {
+      await _spesaRepo.aggiorna(userId, viaggioId, spesa);
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } catch (_) {
+      _errorMessage = 'Impossibile aggiornare la spesa.';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> elimina(
     String userId,
     String viaggioId,
@@ -53,6 +72,8 @@ class ExpenseViewModel extends ChangeNotifier {
   ) async {
     try {
       await _spesaRepo.elimina(userId, viaggioId, spesaId);
+      _errorMessage = null;
+      notifyListeners();
     } catch (_) {
       _errorMessage = 'Impossibile eliminare la spesa.';
       notifyListeners();

@@ -24,6 +24,13 @@ class AddExpenseScreen extends StatefulWidget {
 }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
+  static const Color errorColor = Color(0xFFF44336);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final _formKey = GlobalKey<FormState>();
   final _descrizioneController = TextEditingController();
   final _importoController = TextEditingController();
@@ -59,7 +66,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     super.dispose();
   }
 
-  // Apre fotocamera o galleria e lancia l'OCR
   Future<void> _selezionaImmagine(ImageSource sorgente) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -95,8 +101,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Dati estratti dallo scontrino. Verifica e salva.'),
-            backgroundColor: Colors.green,
+            content: Text('Dati estratti dallo scontrino. Verifica e salva.'),
+            backgroundColor: primaryColor,
           ),
         );
       }
@@ -104,20 +110,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       if (mounted) {
         final erroreStringa = e.toString().toLowerCase();
 
-        // Distinguiamo l'errore di quota (messaggio comprensibile)
-        // da errori tecnici generici
         final bool isQuotaError = erroreStringa.contains('quota') ||
             erroreStringa.contains('rate') ||
             erroreStringa.contains('limit');
 
         final String messaggioUtente = isQuotaError
-            ? '⏳ Limite richieste AI raggiunto. Riprova tra qualche minuto o inserisci i dati manualmente.\nDettaglio: $e'
-            : 'Estrazione automatica non riuscita. Inserisci i dati manualmente.\nDettaglio: $e';
+            ? 'Limite richieste AI raggiunto. Riprova tra qualche minuto o inserisci i dati manualmente.'
+            : 'Estrazione automatica non riuscita. Inserisci i dati manualmente.';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(messaggioUtente),
-            backgroundColor: Colors.orange,
+            backgroundColor: const Color(0xFFF59E0B),
             duration: const Duration(seconds: 5),
             action: SnackBarAction(
               label: 'OK',
@@ -133,25 +137,25 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
-  // Mostra il bottom sheet per scegliere fotocamera o galleria
   void _mostraSceltaSorgente() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40,
+                width: 42,
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               const SizedBox(height: 16),
@@ -159,14 +163,24 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 'Aggiungi scontrino',
                 style: TextStyle(
                   fontSize: 17,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF1E3A8A),
-                  child: Icon(Icons.camera_alt_outlined, color: Colors.white),
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_outlined,
+                    color: primaryColor,
+                  ),
                 ),
                 title: const Text('Fotocamera'),
                 subtitle: const Text('Fotografa lo scontrino'),
@@ -176,10 +190,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 },
               ),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF3B82F6),
-                  child:
-                      Icon(Icons.photo_library_outlined, color: Colors.white),
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.photo_library_outlined,
+                    color: primaryColor,
+                  ),
                 ),
                 title: const Text('Galleria'),
                 subtitle: const Text('Scegli dalla libreria foto'),
@@ -204,14 +226,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       locale: const Locale('it', 'IT'),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
-            primary: Color(0xFF1E3A8A),
-          ),
+          colorScheme: const ColorScheme.light(primary: primaryColor),
         ),
         child: child!,
       ),
     );
-    if (picked != null) setState(() => _dataSelezionata = picked);
+
+    if (picked != null) {
+      setState(() => _dataSelezionata = picked);
+    }
   }
 
   Future<void> _salvaSpesa() async {
@@ -221,19 +244,31 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     try {
       final userId = context.read<AuthViewModel>().currentUser!.uid;
+      final spesaId = _uuid.v4();
 
       final importo = double.tryParse(
             _importoController.text.replaceAll(',', '.'),
           ) ??
           0.0;
 
+      String? immagineUrl;
+
+      if (_immagineSelezionata != null) {
+        immagineUrl = await _spesaRepo.caricaScontrino(
+            userId: userId,
+            viaggioId: widget.viaggioId,
+            spesaId: spesaId,
+            immagine: _immagineSelezionata!);
+      }
+
       final nuovaSpesa = Spesa(
-        id: _uuid.v4(),
+        id: spesaId,
         viaggioId: widget.viaggioId,
         descrizione: _descrizioneController.text.trim(),
         importo: importo,
         categoria: _categoriaSelezionata,
         data: _dataSelezionata,
+        immagineScontrinoUrl: immagineUrl,
       );
 
       await _spesaRepo.aggiungi(userId, widget.viaggioId, nuovaSpesa);
@@ -242,31 +277,48 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Spesa salvata! 💾'),
-          backgroundColor: Colors.green,
+          content: Text('Spesa salvata con scontrino allegato.'),
+          backgroundColor: Color(0xFF1E3A8A),
         ),
       );
 
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Errore durante il salvataggio. Riprova.'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFF44336),
         ),
       );
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool canSave = !_isSaving && !_isOcrLoading;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Aggiungi Spesa'),
+        title: const Text(
+          'Aggiungi spesa',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 17,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: backgroundColor,
+        foregroundColor: textPrimary,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: textPrimary),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
@@ -274,68 +326,57 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: TextButton(
-              key: const Key('addexpense-save-btn'),
-              onPressed: (_isSaving || _isOcrLoading) ? null : _salvaSpesa,
-              child: _isSaving
-                  ? const SizedBox(
+            child: _isSaving
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Salva',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        color: primaryColor,
                       ),
                     ),
-            ),
+                  )
+                : TextButton(
+                    onPressed: canSave ? _salvaSpesa : null,
+                    child: Text(
+                      'Salva',
+                      style: TextStyle(
+                        color: canSave ? primaryColor : Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
           ),
         ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           children: [
-            // --- Area scontrino / OCR ---
+            _buildSectionTitle('Scontrino'),
+            const SizedBox(height: 12),
             GestureDetector(
               onTap: _mostraSceltaSorgente,
               child: Container(
-                key: const Key('addexpense-photo-area'),
-                height: 180,
+                height: 190,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF1E3A8A).withOpacity(0.3),
-                    width: 2,
-                    strokeAlign: BorderSide.strokeAlignInside,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: borderColor),
                 ),
                 child: _isOcrLoading
                     ? const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircularProgressIndicator(
-                            color: Color(0xFF1E3A8A),
-                          ),
+                          CircularProgressIndicator(color: primaryColor),
                           SizedBox(height: 16),
                           Text(
                             'Analisi AI in corso...',
                             style: TextStyle(
-                              color: Color(0xFF1E3A8A),
+                              color: primaryColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -343,7 +384,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       )
                     : _immagineSelezionata != null
                         ? ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(17),
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
@@ -353,12 +394,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                   cacheWidth: 800,
                                 ),
                                 Positioned(
-                                  bottom: 8,
-                                  right: 8,
+                                  right: 10,
+                                  bottom: 10,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
-                                      vertical: 5,
+                                      vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.black54,
@@ -378,176 +419,295 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                            children: const [
                               Icon(
                                 Icons.add_a_photo_outlined,
-                                size: 48,
-                                color: const Color(0xFF1E3A8A).withOpacity(0.5),
+                                size: 42,
+                                color: primaryColor,
                               ),
-                              const SizedBox(height: 12),
-                              const Text(
+                              SizedBox(height: 12),
+                              Text(
                                 'Fotografa lo scontrino',
-                                key: Key('addexpense-photo-title'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1E3A8A),
+                                  color: textPrimary,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 6),
                               Text(
-                                "L'AI estrarrà i dati automaticamente",
+                                'I dati verranno compilati automaticamente',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
+                                  fontSize: 13,
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
                           ),
               ),
             ),
-
             const SizedBox(height: 24),
             _buildSectionTitle('Dettagli spesa'),
             const SizedBox(height: 12),
-
-            // --- Form dati spesa ---
-            _buildCard(children: [
-              TextFormField(
-                key: const Key('addexpense-description'),
-                controller: _descrizioneController,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Descrizione',
-                  prefixIcon: Icon(Icons.edit_outlined),
-                  border: InputBorder.none,
-                ),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Campo obbligatorio'
-                    : null,
-              ),
-              const Divider(height: 1),
-              TextFormField(
-                key: const Key('addexpense-amount'),
-                controller: _importoController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Importo (€)',
-                  prefixIcon: Icon(Icons.euro_outlined),
-                  border: InputBorder.none,
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Inserisci l\'importo';
-                  final n = double.tryParse(v.replaceAll(',', '.'));
-                  if (n == null || n <= 0) return 'Importo non valido';
-                  return null;
-                },
-              ),
-            ]),
-
-            const SizedBox(height: 16),
-
-            // --- Categoria ---
-            _buildCard(children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Categoria',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
+            _buildLabeledField(
+              label: 'Descrizione',
+              controller: _descrizioneController,
+              hintText: 'es. Cena cliente, Taxi aeroporto',
+              icon: Icons.edit_outlined,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Campo obbligatorio' : null,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 14),
+            _buildLabeledField(
+              label: 'Importo (€)',
+              controller: _importoController,
+              hintText: 'es. 24,50',
+              icon: Icons.euro_outlined,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Inserisci l\'importo';
+                final n = double.tryParse(v.replaceAll(',', '.'));
+                if (n == null || n <= 0) return 'Importo non valido';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            _buildSectionTitle('Categoria'),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _categorie.map((cat) {
+                final isSelected = _categoriaSelezionata == cat;
+                return GestureDetector(
+                  onTap: () => setState(() => _categoriaSelezionata = cat),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? primaryColor.withOpacity(0.08)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isSelected ? primaryColor : borderColor,
+                        width: isSelected ? 1.4 : 1,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: _categorie.map((cat) {
-                        final isSelected = _categoriaSelezionata == cat;
-                        return ChoiceChip(
-                          key: Key('addexpense-category-${cat.toLowerCase()}'),
-                          label: Text(cat),
-                          selected: isSelected,
-                          onSelected: (_) =>
-                              setState(() => _categoriaSelezionata = cat),
-                          selectedColor: const Color(0xFF1E3A8A),
-                          labelStyle: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.grey.shade700,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        );
-                      }).toList(),
+                    child: Text(
+                      cat,
+                      style: TextStyle(
+                        color: isSelected ? primaryColor : textSecondary,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ]),
-
-            const SizedBox(height: 16),
-
-            // --- Data ---
-            _buildCard(children: [
-              ListTile(
-                key: const Key('addexpense-date'),
-                leading: const Icon(
-                  Icons.calendar_today_outlined,
-                  color: Color(0xFF1E3A8A),
-                ),
-                title: const Text('Data spesa'),
-                subtitle: Text(
-                  _dateFormat.format(_dataSelezionata),
-                  style: const TextStyle(
-                    color: Color(0xFF1E3A8A),
-                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+            _buildSectionTitle('Data'),
+            const SizedBox(height: 12),
+            _buildDateCard(),
+            const SizedBox(height: 32),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: canSave ? _salvaSpesa : null,
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _selezionaData,
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Salva spesa',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
-            ]),
-
-            const SizedBox(height: 32),
+            ),
+            const SizedBox(height: 12),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String titolo) {
+  Widget _buildSectionTitle(String title) {
     return Text(
-      titolo.toUpperCase(),
-      style: TextStyle(
-        fontSize: 11,
+      title,
+      style: const TextStyle(
+        fontSize: 13,
         fontWeight: FontWeight.bold,
-        color: Colors.grey.shade500,
+        color: primaryColor,
         letterSpacing: 0.8,
       ),
     );
   }
 
-  Widget _buildCard({required List<Widget> children}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  Widget _buildLabeledField({
+    required String label,
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    String? Function(String?)? validator,
+    TextInputType keyboardType = TextInputType.text,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: textSecondary,
+            fontWeight: FontWeight.w500,
           ),
-        ],
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          keyboardType: keyboardType,
+          textCapitalization: textCapitalization,
+          style: const TextStyle(
+            fontSize: 15,
+            color: textPrimary,
+          ),
+          decoration: _fieldDecoration(
+            hintText: hintText,
+            icon: icon,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateCard() {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: _selezionaData,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 18,
+                    color: primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Data spesa',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _dateFormat.format(_dataSelezionata),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      child: Column(children: children),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required String hintText,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(
+        color: textSecondary,
+        fontSize: 14,
+      ),
+      prefixIcon: Icon(icon, color: textSecondary),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: primaryColor, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: errorColor),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: errorColor, width: 1.5),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: borderColor),
+      ),
     );
   }
 }

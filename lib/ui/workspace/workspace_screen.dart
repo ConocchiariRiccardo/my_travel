@@ -13,6 +13,13 @@ class WorkspaceScreen extends StatefulWidget {
 }
 
 class _WorkspaceScreenState extends State<WorkspaceScreen> {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+  static const Color errorColor = Color(0xFFF44336);
+
   late final WorkspaceViewModel _viewModel;
   GoogleMapController? _mapController;
 
@@ -30,7 +37,6 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     super.dispose();
   }
 
-  // Centra la mappa su un luogo selezionato
   void _centraSuLuogo(WorkspacePlace luogo) {
     _mapController?.animateCamera(
       CameraUpdate.newLatLngZoom(luogo.posizione, 16),
@@ -38,29 +44,59 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     _viewModel.selezionaLuogo(luogo);
   }
 
+  void _ricentraSuUtente() {
+    if (_viewModel.posizioneUtente != null) {
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          _viewModel.posizioneUtente!,
+          14.5,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Workspace Finder'),
+        title: const Text(
+          'Workspace Finder',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 17,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: backgroundColor,
+        foregroundColor: textPrimary,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: textPrimary),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: 'Rcentra su di me',
-            onPressed: () {
-              if (_viewModel.posizioneUtente != null) {
-                _mapController?.animateCamera(
-                  CameraUpdate.newLatLngZoom(
-                    _viewModel.posizioneUtente!,
-                    14.5,
-                  ),
-                );
-              }
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: _ricentraSuUtente,
+              borderRadius: BorderRadius.circular(12),
+              child: Ink(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor),
+                ),
+                child: const Icon(
+                  Icons.my_location_rounded,
+                  size: 20,
+                  color: primaryColor,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -98,34 +134,38 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   }
 
   Widget _buildContenuto() {
-    final posizioneIniziale = _viewModel.posizioneUtente ??
-        const LatLng(41.9028, 12.4964); // Roma come fallback
+    final posizioneIniziale =
+        _viewModel.posizioneUtente ?? const LatLng(41.9028, 12.4964);
 
     return Column(
       children: [
-        // --- Filtri ---
+        const SizedBox(height: 4),
+        _buildHeaderInfo(),
         _buildFiltri(),
-
-        // --- Mappa ---
         Expanded(
           flex: 5,
-          child: GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: posizioneIniziale,
-              zoom: 14.5,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: posizioneIniziale,
+                  zoom: 14.5,
+                ),
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                },
+                markers: _viewModel.marker,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+              ),
             ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            markers: _viewModel.marker,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
           ),
         ),
-
-        // --- Lista luoghi / Card selezionata ---
+        const SizedBox(height: 12),
         Expanded(
           flex: 4,
           child: _viewModel.luoghi.isEmpty
@@ -138,6 +178,33 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     );
   }
 
+  Widget _buildHeaderInfo() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            'Trova spazi adatti per lavorare durante il viaggio',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: textPrimary,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Caffè, coworking e biblioteche vicino alla tua posizione.',
+            style: TextStyle(
+              fontSize: 13,
+              color: textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFiltri() {
     final filtri = [
       ('tutti', 'Tutti', '📍'),
@@ -146,31 +213,44 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       ('library', 'Biblioteche', '📚'),
     ];
 
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: filtri.map((f) {
-            final isSelected = _viewModel.filtroTipo == f.$1;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                avatar: Text(f.$3),
-                label: Text(f.$2),
-                selected: isSelected,
-                onSelected: (_) => _viewModel.impostaFiltro(f.$1),
-                selectedColor: const Color(0xFF1E3A8A),
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey.shade700,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                checkmarkColor: Colors.white,
-                backgroundColor: Colors.grey.shade100,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: SizedBox(
+        height: 42,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: filtri.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final filtro = filtri[index];
+            final isSelected = _viewModel.filtroTipo == filtro.$1;
+
+            return FilterChip(
+              avatar: Text(
+                filtro.$3,
+                style: const TextStyle(fontSize: 14),
               ),
+              label: Text(filtro.$2),
+              selected: isSelected,
+              onSelected: (_) => _viewModel.impostaFiltro(filtro.$1),
+              showCheckmark: false,
+              side: BorderSide(
+                color: isSelected ? primaryColor : borderColor,
+              ),
+              selectedColor: primaryColor.withOpacity(0.10),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              labelStyle: TextStyle(
+                color: isSelected ? primaryColor : textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 13,
+              ),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             );
-          }).toList(),
+          },
         ),
       ),
     );
@@ -178,7 +258,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
 
   Widget _buildListaLuoghi() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       itemCount: _viewModel.luoghi.length,
       itemBuilder: (context, index) {
         final luogo = _viewModel.luoghi[index];
@@ -191,113 +271,159 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
   }
 
   Widget _buildCardDettaglio(WorkspacePlace luogo) {
-    return GestureDetector(
-      onTap: () => _viewModel.selezionaLuogo(null),
-      child: Container(
-        color: const Color(0xFFF5F7FA),
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      luogo.iconaTipo,
-                      style: const TextStyle(fontSize: 28),
+    return Container(
+      color: backgroundColor,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Center(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.10),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            luogo.nome,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                            ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      luogo.iconaTipo,
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          luogo.nome,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: textPrimary,
                           ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          luogo.indirizzo,
+                          style: const TextStyle(
+                            color: textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    color: textSecondary,
+                    onPressed: () => _viewModel.selezionaLuogo(null),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _buildBadge(
+                    luogo.isAperto ? 'Aperto' : 'Chiuso',
+                    luogo.isAperto ? const Color(0xFF2E7D32) : errorColor,
+                  ),
+                  _buildBadge(
+                    luogo.tipo.toUpperCase(),
+                    primaryColor,
+                  ),
+                  if (luogo.valutazione != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFFFE082)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.star_rounded,
+                            color: Colors.amber,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            luogo.indirizzo,
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 13,
+                            luogo.valutazione!.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                              color: textPrimary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
                       onPressed: () => _viewModel.selezionaLuogo(null),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    // Badge aperto/chiuso
-                    _buildBadge(
-                      luogo.isAperto ? '● Aperto' : '● Chiuso',
-                      luogo.isAperto
-                          ? Colors.green.shade600
-                          : Colors.red.shade600,
-                    ),
-                    const SizedBox(width: 8),
-                    // Badge tipo
-                    _buildBadge(
-                      luogo.tipo.toUpperCase(),
-                      const Color(0xFF1E3A8A),
-                    ),
-                    if (luogo.valutazione != null) ...[
-                      const SizedBox(width: 8),
-                      const Icon(Icons.star_rounded,
-                          color: Colors.amber, size: 16),
-                      const SizedBox(width: 3),
-                      Text(
-                        luogo.valutazione!.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                      label: const Text('Torna alla lista'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: primaryColor,
+                        side: const BorderSide(color: borderColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Bottone "Apri in Maps"
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => _apriInMaps(luogo),
-                    icon: const Icon(Icons.directions_outlined),
-                    label: const Text('Indicazioni stradali'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A8A),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _apriInMaps(luogo),
+                      icon: const Icon(Icons.directions_outlined, size: 18),
+                      label: const Text('Apri in Maps'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -306,18 +432,18 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
 
   Widget _buildBadge(String testo, Color colore) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: colore.withOpacity(0.1),
+        color: colore.withOpacity(0.10),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colore.withOpacity(0.3)),
+        border: Border.all(color: colore.withOpacity(0.20)),
       ),
       child: Text(
         testo,
         style: TextStyle(
           color: colore,
           fontSize: 11,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -329,113 +455,143 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       '&destination=${luogo.posizione.latitude},${luogo.posizione.longitude}'
       '&destination_place_id=${luogo.placeId}',
     );
-    // Riusiamo url_launcher già presente nel progetto
-    // ignore: deprecated_member_use
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 }
 
-// ─── Widget estratti ─────────────────────────────────────────────────────────
-
 class _WorkspaceTile extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+  static const Color errorColor = Color(0xFFF44336);
+
   final WorkspacePlace luogo;
   final VoidCallback onTap;
 
-  const _WorkspaceTile({required this.luogo, required this.onTap});
+  const _WorkspaceTile({
+    required this.luogo,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Text(luogo.iconaTipo, style: const TextStyle(fontSize: 28)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    luogo.nome,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    luogo.indirizzo,
-                    style: TextStyle(
-                      color: Colors.grey.shade500,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+    final Color statoColor =
+        luogo.isAperto ? const Color(0xFF2E7D32) : errorColor;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (luogo.valutazione != null)
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded,
-                          color: Colors.amber, size: 14),
-                      const SizedBox(width: 2),
-                      Text(
-                        luogo.valutazione!.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 4),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: luogo.isAperto
-                        ? Colors.green.shade50
-                        : Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    luogo.isAperto ? 'Aperto' : 'Chiuso',
-                    style: TextStyle(
-                      color: luogo.isAperto
-                          ? Colors.green.shade700
-                          : Colors.red.shade700,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.10),
+                  shape: BoxShape.circle,
                 ),
-              ],
-            ),
-          ],
+                alignment: Alignment.center,
+                child: Text(
+                  luogo.iconaTipo,
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      luogo.nome,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      luogo.indirizzo,
+                      style: const TextStyle(
+                        color: textSecondary,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statoColor.withOpacity(0.10),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            luogo.isAperto ? 'Aperto' : 'Chiuso',
+                            style: TextStyle(
+                              color: statoColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        if (luogo.valutazione != null) ...[
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.star_rounded,
+                            color: Colors.amber,
+                            size: 15,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            luogo.valutazione!.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                              color: textPrimary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: textSecondary,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -448,57 +604,20 @@ class _LoadingState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: Color(0xFF1E3A8A)),
-          SizedBox(height: 20),
-          Text(
-            'Ricerca workspace nelle vicinanze...',
-            style: TextStyle(
-              color: Color(0xFF1E3A8A),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PermessoNegatoState extends StatelessWidget {
-  final String messaggio;
-
-  const _PermessoNegatoState({required this.messaggio});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.location_off_outlined,
-                size: 72, color: Colors.orange),
-            const SizedBox(height: 16),
-            const Text(
-              'Posizione non disponibile',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+            CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+            SizedBox(height: 20),
             Text(
-              messaggio,
+              'Sto cercando workspace nelle vicinanze...',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () => Geolocator.openAppSettings(),
-              icon: const Icon(Icons.settings_outlined),
-              label: const Text('Apri Impostazioni'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+              style: TextStyle(
+                color: Color(0xFF1E3A8A),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
               ),
             ),
           ],
@@ -508,7 +627,95 @@ class _PermessoNegatoState extends StatelessWidget {
   }
 }
 
+class _PermessoNegatoState extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
+  final String messaggio;
+
+  const _PermessoNegatoState({required this.messaggio});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.location_off_outlined,
+                  size: 32,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Posizione non disponibile',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                messaggio,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Geolocator.openAppSettings(),
+                  icon: const Icon(Icons.settings_outlined),
+                  label: const Text('Apri impostazioni'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ErroreState extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final String messaggio;
   final VoidCallback onRiprova;
 
@@ -521,27 +728,68 @@ class _ErroreState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.wifi_off_rounded, size: 72, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              messaggio,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onRiprova,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Riprova'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.wifi_off_rounded,
+                  size: 32,
+                  color: Colors.grey.shade600,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              const Text(
+                'Qualcosa è andato storto',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                messaggio,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onRiprova,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Riprova'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -549,6 +797,11 @@ class _ErroreState extends StatelessWidget {
 }
 
 class _GpsDisattivatoState extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final String messaggio;
   final VoidCallback onRiprova;
 
@@ -561,43 +814,87 @@ class _GpsDisattivatoState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.gps_off_rounded, size: 72, color: Colors.orange),
-            const SizedBox(height: 16),
-            const Text(
-              'GPS non attivo',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              messaggio,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () async {
-                await Geolocator.openLocationSettings();
-              },
-              icon: const Icon(Icons.location_on_outlined),
-              label: const Text('Attiva GPS'),
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.orange,
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.gps_off_rounded,
+                  size: 32,
+                  color: primaryColor,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: onRiprova,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Ho attivato il GPS, riprova'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1E3A8A),
+              const SizedBox(height: 16),
+              const Text(
+                'GPS non attivo',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                messaggio,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    await Geolocator.openLocationSettings();
+                  },
+                  icon: const Icon(Icons.location_on_outlined),
+                  label: const Text('Attiva GPS'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: onRiprova,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Ho attivato il GPS, riprova'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryColor,
+                    side: const BorderSide(color: borderColor),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -609,18 +906,47 @@ class _NessunRisultato extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search_off_rounded, size: 56, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
-          Text(
-            'Nessun workspace trovato\nnelle vicinanze.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade400),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Center(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFE0E0E0)),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.search_off_rounded,
+                size: 56,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Nessun workspace trovato nelle vicinanze.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Prova a cambiare area o filtro.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
