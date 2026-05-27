@@ -53,12 +53,12 @@ void main() {
   group('ProfileScreen – rendering', () {
     testWidgets('mostra nome completo dell\'utente', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Mario Rossi'), findsWidgets);
+      expect(find.byKey(const Key('profile-name')), findsOneWidget);
     });
 
     testWidgets('mostra email dell\'utente', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('mario@test.com'), findsWidgets);
+      expect(find.byKey(const Key('profile-email')), findsOneWidget);
     });
 
     testWidgets('mostra il menu My Profile', (tester) async {
@@ -69,7 +69,7 @@ void main() {
     testWidgets('mostra spinner durante isLoading', (tester) async {
       when(mockProfile.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('profile-loading')), findsOneWidget);
     });
 
     testWidgets('mostra link a Travel history', (tester) async {
@@ -91,8 +91,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('edit-profile-btn')));
       await tester.pump();
-      expect(find.text('Full name'), findsOneWidget);
-      final firstField = tester.widget<TextFormField>(find.byType(TextFormField).first);
+      expect(find.byKey(const Key('profile-field-full_name')), findsOneWidget);
+      final firstField = tester.widget<TextFormField>(find.byKey(const Key('profile-field-full_name')));
       expect(firstField.enabled, isTrue);
     });
 
@@ -112,9 +112,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('edit-profile-btn')));
       await tester.pump();
-      await tester.enterText(find.byType(TextFormField).first, 'Luca Bianchi');
+      await tester.enterText(find.byKey(const Key('profile-field-full_name')), 'Luca Bianchi');
       await tester.pump();
-      expect(find.text('Luca Bianchi'), findsOneWidget);
+      final updatedField = tester.widget<TextFormField>(find.byKey(const Key('profile-field-full_name')));
+      expect(updatedField.controller?.text, 'Luca Bianchi');
     });
   });
 
@@ -124,7 +125,7 @@ void main() {
       await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
       await tester.tap(find.byKey(const Key('logout-btn')));
       await tester.pumpAndSettle();
-      expect(find.descendant(of: find.byType(AlertDialog), matching: find.text('Logout')), findsOneWidget);
+      expect(find.byKey(const Key('logout-dialog-title')), findsOneWidget);
     });
 
     testWidgets('tap Annulla nel dialog non chiama logout', (tester) async {
@@ -132,7 +133,7 @@ void main() {
       await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
       await tester.tap(find.byKey(const Key('logout-btn')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Annulla'));
+      await tester.tap(find.byKey(const Key('logout-cancel-btn')));
       await tester.pumpAndSettle();
       verifyNever(mockAuth.logout());
     });
@@ -143,7 +144,7 @@ void main() {
       await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
       await tester.tap(find.byKey(const Key('logout-btn')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Esci'));
+      await tester.tap(find.byKey(const Key('logout-confirm-btn')));
       await tester.pumpAndSettle();
       verify(mockAuth.logout()).called(1);
     });

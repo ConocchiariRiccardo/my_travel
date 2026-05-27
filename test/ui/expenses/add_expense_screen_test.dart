@@ -62,6 +62,8 @@ void main() {
 
     testWidgets('mostra il data picker nella sezione data', (tester) async {
       await tester.pumpWidget(buildWidget());
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('addexpense-date')), findsOneWidget);
     });
   });
@@ -97,14 +99,16 @@ void main() {
       await tester.pumpWidget(buildWidget());
       await tester.tap(find.byKey(const Key('addexpense-category-trasporto')));
       await tester.pump();
-      final chip = tester.widget<ChoiceChip>(find.byKey(const Key('addexpense-category-trasporto')));
-      expect(chip.selected, isTrue);
+      final chip = tester.widget<Container>(find.byKey(const Key('addexpense-category-trasporto')));
+      final decoration = chip.decoration as BoxDecoration;
+      expect(decoration.color, isNot(Colors.white));
     });
 
     testWidgets('"Altro" è selezionato di default', (tester) async {
       await tester.pumpWidget(buildWidget());
-      final chip = tester.widget<ChoiceChip>(find.byKey(const Key('addexpense-category-altro')));
-      expect(chip.selected, isTrue);
+      final chip = tester.widget<Container>(find.byKey(const Key('addexpense-category-altro')));
+      final decoration = chip.decoration as BoxDecoration;
+      expect(decoration.color, isNot(Colors.white));
     });
   });
 }

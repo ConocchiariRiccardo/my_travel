@@ -189,6 +189,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           ),
           title: const Text(
             'Concludi viaggio',
+            key: const Key('conclude-dialog-title'),
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: textPrimary,
@@ -200,6 +201,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           ),
           actions: [
             TextButton(
+              key: const Key('conclude-cancel'),
               onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text(
                 'Annulla',
@@ -207,6 +209,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
               ),
             ),
             FilledButton(
+              key: const Key('conclude-confirm'),
               onPressed: () => Navigator.of(ctx).pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: primaryColor,
@@ -255,7 +258,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           return const Scaffold(
             backgroundColor: backgroundColor,
             body: Center(
-              child: CircularProgressIndicator(color: primaryColor),
+              child: CircularProgressIndicator(key: const Key('trip-loading'), color: primaryColor),
             ),
           );
         }
@@ -303,6 +306,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             iconTheme: const IconThemeData(color: textPrimary),
             actions: [
               TextButton(
+                key: const Key('complete-trip-btn'),
                 onPressed: _confermaCompletamento,
                 child: const Text(
                   'Concludi',
@@ -315,6 +319,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ],
           ),
           body: ListView(
+            key: const Key('trip-scroll'),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             children: [
               _TripHeaderCard(
@@ -354,6 +359,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 children: [
                   _buildSectionTitle('Attività'),
                   TextButton.icon(
+                    key: const Key('add-activity-btn'),
                     onPressed: _mostraDialogAggiungiAttivita,
                     icon: const Icon(Icons.add, size: 18),
                     label: const Text('Aggiungi'),
@@ -381,6 +387,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(999),
                           child: LinearProgressIndicator(
+                            key: const Key('trip-progress'),
                             value: percentuale,
                             backgroundColor: Colors.grey.shade200,
                             color: primaryColor,
@@ -579,6 +586,7 @@ class _TripHeaderCard extends StatelessWidget {
                   children: [
                     Text(
                       nome,
+                      key: const Key('trip-title'),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -597,6 +605,7 @@ class _TripHeaderCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             destinazione,
+                            key: const Key('trip-destination'),
                             style: const TextStyle(
                               fontSize: 14,
                               color: textSecondary,
@@ -637,6 +646,7 @@ class _TripHeaderCard extends StatelessWidget {
             ),
             child: Text(
               countdownTesto,
+              key: const Key('trip-countdown'),
               style: TextStyle(
                 color: countdownColore,
                 fontWeight: FontWeight.w600,
@@ -717,6 +727,7 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
+      key: Key('quicklink-$label'),
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
@@ -806,6 +817,7 @@ class _AttivitaTile extends StatelessWidget {
       ),
       title: Text(
         attivita.nome,
+        key: Key('activity-title-${attivita.id}'),
         style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
@@ -852,6 +864,7 @@ class _EmptyAttivita extends StatelessWidget {
           const SizedBox(height: 10),
           const Text(
             'Nessuna attività pianificata',
+            key: const Key('empty-activities-title'),
             style: TextStyle(
               color: textSecondary,
               fontSize: 15,

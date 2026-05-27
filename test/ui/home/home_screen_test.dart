@@ -74,10 +74,10 @@ void main() {
         child: MaterialApp(
           home: HomeScreen(),
           routes: {
-            '/add-trip': _stub,
-            '/calendar': _stub,
-            '/workspace': _stub,
-            '/profile': _stub,
+            '/add-trip': _stub('add-trip-route'),
+            '/calendar': _stub('calendar-route'),
+            '/workspace': _stub('workspace-route'),
+            '/profile': _stub('profile-route'),
           },
           onGenerateRoute: _generateRoute,
         ),
@@ -116,13 +116,13 @@ void main() {
     testWidgets('mostra CircularProgressIndicator durante isLoading', (tester) async {
       when(mockHome.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('home-loading')), findsOneWidget);
     });
 
     testWidgets('mostra messaggio di errore se errorMessage non è null', (tester) async {
       when(mockHome.errorMessage).thenReturn('Errore nel caricamento dei viaggi.');
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Errore nel caricamento dei viaggi.'), findsOneWidget);
+      expect(find.byKey(const Key('home-error-message')), findsOneWidget);
     });
   });
 
@@ -188,13 +188,13 @@ void main() {
       await tester.pumpWidget(buildWidget());
       await tester.tap(find.byKey(const Key('new-trip-btn')));
       await tester.pumpAndSettle();
-      expect(find.text('Stub'), findsOneWidget);
+      expect(find.byKey(const Key('add-trip-route')), findsOneWidget);
     });
   });
 }
 
 // Helpers navigazione
-Widget Function(BuildContext) get _stub => (_) => const Scaffold(body: Text('Stub'));
+Widget Function(BuildContext) _stub(String keyValue) => (_) => Scaffold(body: Text('Stub', key: Key(keyValue)));
 
 Route<dynamic>? _generateRoute(RouteSettings s) {
   if (s.name == '/trip') {

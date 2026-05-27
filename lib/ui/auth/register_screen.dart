@@ -13,7 +13,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   static const Color primaryColor = Color(0xFF1E3A8A);
   static const Color backgroundColor = Color(0xFFF5F7FA);
   static const Color errorColor = Color(0xFFF44336);
-  static const Color successColor = Colors.green;
   static const Color textPrimary = Colors.black87;
   static const Color textSecondary = Color(0xFF757575);
   static const Color borderColor = Color(0xFFE0E0E0);
@@ -49,7 +48,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Account creato con successo! Benvenuto.'),
+          content: Text(
+            'Account creato con successo! Benvenuto.',
+            key: const Key('register-success-snackbar'),
+          ),
           backgroundColor: primaryColor,
         ),
       );
@@ -57,7 +59,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else if (authViewModel.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authViewModel.errorMessage!),
+          content: Text(
+            authViewModel.errorMessage!,
+            key: const Key('register-error-snackbar'),
+          ),
           backgroundColor: errorColor,
         ),
       );
@@ -104,6 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 8),
                 const Text(
                   'Crea il tuo account',
+                  key: const Key('register-title'),
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -124,6 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _buildSectionLabel('Credenziali'),
                 const SizedBox(height: 12),
                 TextFormField(
+                  key: const Key('register-email-field'),
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -148,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const Key('register-password-field'),
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
                   textInputAction: TextInputAction.next,
@@ -161,6 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hint: 'Minimo 8 caratteri',
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
+                      key: const Key('register-password-visibility-btn'),
                       icon: Icon(
                         _isPasswordVisible
                             ? Icons.visibility_off_outlined
@@ -198,6 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _buildPasswordStrengthHint(_passwordController.text),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const Key('register-confirm-password-field'),
                   controller: _confirmPasswordController,
                   obscureText: !_isConfirmPasswordVisible,
                   textInputAction: TextInputAction.done,
@@ -211,6 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hint: 'Ripeti la password',
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
+                      key: const Key('register-confirm-password-visibility-btn'),
                       icon: Icon(
                         _isConfirmPasswordVisible
                             ? Icons.visibility_off_outlined
@@ -266,6 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
+                    key: const Key('register-btn'),
                     onPressed: isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
@@ -281,6 +293,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             height: 22,
                             width: 22,
                             child: CircularProgressIndicator(
+                              key: const Key('register-loading'),
                               color: Colors.white,
                               strokeWidth: 2.2,
                             ),
@@ -306,6 +319,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     GestureDetector(
+                      key: const Key('register-login-link'),
                       onTap: () => Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/login',

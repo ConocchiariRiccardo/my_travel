@@ -60,8 +60,8 @@ void main() {
         child: MaterialApp(
           home: ExpenseScreen(viaggioId: 'v1', viewModel: mockVm),
           routes: {
-            '/expenses/add': _stub,
-            '/pdf': _stub,
+            '/expenses/add': _stub('expenses-add-route'),
+            '/pdf': _stub('expense-pdf-route'),
           },
         ),
       );
@@ -91,7 +91,7 @@ void main() {
     testWidgets('mostra spinner durante isLoading', (tester) async {
       when(mockVm.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('expense-loading')), findsOneWidget);
     });
 
     testWidgets('mostra FAB Aggiungi spesa', (tester) async {
@@ -120,16 +120,16 @@ void main() {
       await tester.pumpWidget(buildWidget());
       await tester.tap(find.byKey(const Key('expense-add-fab')));
       await tester.pumpAndSettle();
-      expect(find.text('Stub'), findsOneWidget);
+      expect(find.byKey(const Key('expenses-add-route')), findsOneWidget);
     });
 
     testWidgets('tap icona PDF naviga verso /pdf', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.tap(find.byKey(const Key('expense-pdf-btn')));
       await tester.pumpAndSettle();
-      expect(find.text('Stub'), findsOneWidget);
+      expect(find.byKey(const Key('expense-pdf-route')), findsOneWidget);
     });
   });
 }
 
-Widget Function(BuildContext) get _stub => (_) => const Scaffold(body: Text('Stub'));
+Widget Function(BuildContext) _stub(String keyValue) => (_) => Scaffold(body: Text('Stub', key: Key(keyValue)));

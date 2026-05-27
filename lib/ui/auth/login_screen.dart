@@ -44,8 +44,11 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authViewModel.errorMessage ?? 'Errore di accesso.'),
+            SnackBar(
+              content: Text(
+                authViewModel.errorMessage ?? 'Errore di accesso.',
+                key: const Key('login-error-snackbar'),
+              ),
           backgroundColor: errorColor,
         ),
       );
@@ -64,8 +67,11 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, '/home');
     } else if (authViewModel.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authViewModel.errorMessage!),
+            SnackBar(
+              content: Text(
+                authViewModel.errorMessage!,
+                key: const Key('login-error-snackbar'),
+              ),
           backgroundColor: errorColor,
         ),
       );
@@ -104,6 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 const Text(
                   'Bentornato',
+                  key: const Key('login-title'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
@@ -125,6 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildSectionLabel('Credenziali'),
                 const SizedBox(height: 12),
                 TextField(
+                  key: const Key('email-field'),
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -140,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 14),
                 TextField(
+                  key: const Key('password-field'),
                   controller: _passwordController,
                   obscureText: !_passwordVisibile,
                   textInputAction: TextInputAction.done,
@@ -153,6 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     hint: 'Inserisci la password',
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
+                      key: const Key('password-visibility-btn'),
                       splashRadius: 20,
                       icon: Icon(
                         _passwordVisibile
@@ -172,6 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
+                    key: const Key('login-btn'),
                     onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
@@ -183,7 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: isLoading
-                        ? const SizedBox(
+                      ? const SizedBox(
+                        key: Key('login-loading'),
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(
@@ -225,6 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   height: 52,
                   child: OutlinedButton(
+                    key: const Key('google-btn'),
                     onPressed: isLoading ? null : _loginGoogle,
                     style: OutlinedButton.styleFrom(
                       elevation: 0,
@@ -268,6 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     GestureDetector(
+                      key: const Key('register-link'),
                       onTap: () => Navigator.pushNamed(context, '/register'),
                       child: const Text(
                         'Registrati',

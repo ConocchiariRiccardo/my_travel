@@ -77,7 +77,7 @@ void main() {
         child: MaterialApp(
           home: TripDetailScreen(viaggioId: 'v1', viewModel: mockVm),
           routes: {
-            '/expenses': (_) => const Scaffold(body: Text('Spese')),
+            '/expenses': (_) => const Scaffold(body: Text('Spese', key: Key('expenses-route'))),
           },
         ),
       );
@@ -103,7 +103,11 @@ void main() {
 
     testWidgets('mostra bottone "Gestisci spese e scontrini"', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('manage-expenses-button')),
+        400,
+      );
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('manage-expenses-button')), findsOneWidget);
     });
 
@@ -146,7 +150,11 @@ void main() {
         makeAttivita(id: 'a2', nome: 'Pranzo di lavoro'),
       ]);
       await tester.pumpWidget(buildWidget());
-      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('activity-title-a1')),
+        400,
+      );
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('activity-title-a1')), findsOneWidget);
       expect(find.byKey(const Key('activity-title-a2')), findsOneWidget);
     });
@@ -156,7 +164,11 @@ void main() {
         makeAttivita(nome: 'Attività fatta', completata: true),
       ]);
       await tester.pumpWidget(buildWidget());
-      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('activity-title-a1')),
+        400,
+      );
+      await tester.pumpAndSettle();
       final text = tester.widget<Text>(find.byKey(const Key('activity-title-a1')));
       expect(text.style?.decoration, TextDecoration.lineThrough);
     });
@@ -174,7 +186,11 @@ void main() {
       when(mockVm.attivita).thenReturn([attivita]);
       when(mockVm.toggle(any, any, any)).thenAnswer((_) async {});
       await tester.pumpWidget(buildWidget());
-      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('activity-toggle-a1')),
+        400,
+      );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(Key('activity-toggle-${attivita.id}')));
       await tester.pump();
@@ -184,10 +200,14 @@ void main() {
     testWidgets('tap elimina attività mostra dialog di conferma', (tester) async {
       when(mockVm.attivita).thenReturn([makeAttivita(nome: 'Da cancellare')]);
       await tester.pumpWidget(buildWidget());
-      await tester.pump();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('activity-delete-a1')),
+        400,
+      );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('activity-delete-a1')));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       verify(mockVm.elimina('uid-test', 'v1', 'a1')).called(1);
     });
@@ -197,11 +217,11 @@ void main() {
     testWidgets('tap "Gestisci spese" naviga verso /expenses', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -650));
+      await tester.drag(find.byKey(const Key('trip-scroll')), const Offset(0, -650));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('manage-expenses-button')));
       await tester.pumpAndSettle();
-      expect(find.text('Spese'), findsOneWidget);
+      expect(find.byKey(const Key('expenses-route')), findsOneWidget);
     });
 
     testWidgets('tap concludi mostra dialog di conferma', (tester) async {
@@ -209,7 +229,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('complete-trip-btn')));
       await tester.pumpAndSettle();
-      expect(find.text('Concludi viaggio'), findsOneWidget);
+      expect(find.byKey(const Key('conclude-dialog-title')), findsOneWidget);
     });
 
     testWidgets('annulla concludi non chiama completa', (tester) async {

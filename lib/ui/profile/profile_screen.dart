@@ -42,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: profileVm.isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: primaryColor),
+                child: CircularProgressIndicator(key: const Key('profile-loading'), color: primaryColor),
             )
           : ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -169,6 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   vm.utente?.nomeCompleto?.trim().isNotEmpty == true
                       ? vm.utente!.nomeCompleto!
                       : 'Utente',
+                  key: const Key('profile-name'),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -178,6 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 4),
                 Text(
                   vm.email,
+                  key: const Key('profile-email'),
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF757575),
@@ -213,7 +215,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    bool isLast = false,
   }) {
     return ListTile(
       key: Key('menu-${title.replaceAll(' ', '_').toLowerCase()}'),
@@ -288,10 +289,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),
-        title: const Text('Logout'),
+        title: const Text(
+          'Logout',
+          key: Key('logout-dialog-title'),
+        ),
         content: const Text('Vuoi uscire dall\'account?'),
         actions: [
           TextButton(
+            key: const Key('logout-cancel-btn'),
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text(
               'Annulla',
@@ -299,6 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           FilledButton(
+            key: const Key('logout-confirm-btn'),
             onPressed: () => Navigator.of(ctx).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFF44336),

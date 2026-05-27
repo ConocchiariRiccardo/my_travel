@@ -411,6 +411,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         const SizedBox(height: 6),
         TextFormField(
+          key: Key('profile-field-${label.replaceAll(' ', '_').toLowerCase()}'),
           controller: controller,
           enabled: enabled,
           keyboardType: keyboardType,
@@ -441,6 +442,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           children: [
             Expanded(
               child: TextFormField(
+                key: const Key('profile-dob-day'),
                 controller: giornoController,
                 enabled: isEditing,
                 keyboardType: TextInputType.number,
@@ -458,6 +460,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: TextFormField(
+                key: const Key('profile-dob-month'),
                 controller: meseController,
                 enabled: isEditing,
                 keyboardType: TextInputType.number,
@@ -476,6 +479,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Expanded(
               flex: 2,
               child: TextFormField(
+                key: const Key('profile-dob-year'),
                 controller: annoController,
                 enabled: isEditing,
                 keyboardType: TextInputType.number,
@@ -562,6 +566,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: TextFormField(
+                key: const Key('profile-phone-field'),
                 controller: telefonoController,
                 enabled: isEditing,
                 keyboardType: TextInputType.phone,

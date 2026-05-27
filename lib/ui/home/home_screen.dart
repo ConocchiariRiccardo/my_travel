@@ -84,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   const Text(
                     'I miei viaggi',
+                    key: Key('home-title'),
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -144,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: TextField(
+                key: const Key('home-search-field'),
                 controller: _searchController,
                 onChanged: (testo) {
                   setState(() {});
@@ -232,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (homeVm.isLoading)
             const SliverFillRemaining(
               child: Center(
-                child: CircularProgressIndicator(color: primaryColor),
+                child: CircularProgressIndicator(key: Key('home-loading'), color: primaryColor),
               ),
             )
           else if (homeVm.errorMessage != null)
@@ -272,6 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const Key('new-trip-btn'),
         onPressed: () => Navigator.pushNamed(context, '/add-trip'),
         backgroundColor: primaryColor,
         elevation: 0,
@@ -299,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isSelected = vm.filtroCorrente == valore;
 
     return FilterChip(
+      key: Key('filter-$valore'),
       label: Text(etichetta),
       selected: isSelected,
       onSelected: (_) => context.read<HomeViewModel>().impostaFiltro(valore),
@@ -343,6 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 6),
             Text(
               messaggio,
+              key: const Key('home-error-message'),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: textSecondary,
@@ -378,6 +383,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             const Text(
               'Nessun viaggio in programma',
+              key: const Key('home-empty-title'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,

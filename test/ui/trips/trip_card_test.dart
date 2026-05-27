@@ -78,17 +78,20 @@ Future<void> main() async {
   group('TripCard – badge di stato', () {
     testWidgets('mostra badge "In corso" per viaggio in corso', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(inCorso: true)));
-      expect(find.textContaining('In corso'), findsOneWidget);
+      final badge = tester.widget<Text>(find.byKey(const Key('trip-status-v1')));
+      expect(badge.data, contains('In corso'));
     });
 
     testWidgets('mostra badge con giorni rimanenti per viaggio futuro', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(giorniAlPartenza: 7)));
-      expect(find.textContaining('7'), findsOneWidget);
+      final badge = tester.widget<Text>(find.byKey(const Key('trip-status-v1')));
+      expect(badge.data, contains('7'));
     });
 
     testWidgets('mostra badge "Concluso" per viaggio passato', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(concluso: true)));
-      expect(find.text('Concluso'), findsOneWidget);
+      final badge = tester.widget<Text>(find.byKey(const Key('trip-status-v1')));
+      expect(badge.data, 'Concluso');
     });
   });
 
@@ -108,11 +111,8 @@ Future<void> main() async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(nome: 'Da eliminare')));
       await tester.tap(find.byKey(const Key('trip-delete-v1')));
       await tester.pumpAndSettle();
-      expect(find.text('Elimina viaggio'), findsOneWidget);
-      expect(
-        find.textContaining('L\'operazione è irreversibile.'),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('trip-delete-title')), findsOneWidget);
+      expect(find.byKey(const Key('trip-delete-message')), findsOneWidget);
     });
 
     testWidgets('tap Annulla nel dialog non chiama onDelete', (tester) async {

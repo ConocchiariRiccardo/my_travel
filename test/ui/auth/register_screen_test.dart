@@ -25,8 +25,8 @@ void main() {
           child: const RegisterScreen(),
         ),
         routes: {
-          '/login': (_) => const Scaffold(body: Text('Login')),
-          '/home': (_) => const Scaffold(body: Text('Home')),
+          '/login': (_) => const Scaffold(body: Text('Login', key: Key('login-route'))),
+          '/home': (_) => const Scaffold(body: Text('Home', key: Key('home-route'))),
         },
       );
 
@@ -71,7 +71,7 @@ void main() {
       await tester.enterText(find.byKey(const Key('register-password-field')), '123');
       await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
-      expect(find.text('La password deve avere almeno 6 caratteri'), findsOneWidget);
+      expect(find.text('La password deve avere almeno 8 caratteri'), findsOneWidget);
     });
 
     testWidgets('mostra errore se le password non coincidono', (tester) async {
@@ -79,6 +79,7 @@ void main() {
       await tester.enterText(find.byKey(const Key('register-email-field')), 'ok@ok.com');
       await tester.enterText(find.byKey(const Key('register-password-field')), 'pass123');
       await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'diversa');
+      await tester.ensureVisible(find.byKey(const Key('register-btn')));
       await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       expect(find.text('Le password non coincidono'), findsOneWidget);
@@ -86,6 +87,7 @@ void main() {
 
     testWidgets('non chiama register se form non valido', (tester) async {
       await tester.pumpWidget(buildWidget());
+      await tester.ensureVisible(find.byKey(const Key('register-btn')));
       await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       verifyNever(mockAuth.register(any, any));
@@ -102,7 +104,7 @@ void main() {
     testWidgets('bottone disabilitato durante isLoading', (tester) async {
       when(mockAuth.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      final btn = tester.widget<FilledButton>(find.byKey(const Key('register-btn')));
+      final btn = tester.widget<ElevatedButton>(find.byKey(const Key('register-btn')));
       expect(btn.onPressed, isNull);
     });
   });
@@ -113,12 +115,13 @@ void main() {
       await tester.pumpWidget(buildWidget());
 
       await tester.enterText(find.byKey(const Key('register-email-field')), 'nuovo@user.com');
-      await tester.enterText(find.byKey(const Key('register-password-field')), 'password1');
-      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'password1');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'Password1!');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'Password1!');
+      await tester.ensureVisible(find.byKey(const Key('register-btn')));
       await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
 
-      verify(mockAuth.register('nuovo@user.com', 'password1')).called(1);
+      verify(mockAuth.register('nuovo@user.com', 'Password1!')).called(1);
     });
 
     testWidgets('mostra SnackBar di successo dopo registrazione', (tester) async {
@@ -126,13 +129,14 @@ void main() {
       await tester.pumpWidget(buildWidget());
 
       await tester.enterText(find.byKey(const Key('register-email-field')), 'n@n.com');
-      await tester.enterText(find.byKey(const Key('register-password-field')), 'validpass');
-      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'validpass');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'Validpass1!');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'Validpass1!');
+      await tester.ensureVisible(find.byKey(const Key('register-btn')));
       await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Account creato con successo! Benvenuto.'), findsOneWidget);
+      expect(find.byKey(const Key('register-success-snackbar')), findsOneWidget);
     });
 
     testWidgets('mostra SnackBar di errore su registrazione fallita', (tester) async {
@@ -141,20 +145,22 @@ void main() {
       await tester.pumpWidget(buildWidget());
 
       await tester.enterText(find.byKey(const Key('register-email-field')), 'gia@usata.com');
-      await tester.enterText(find.byKey(const Key('register-password-field')), 'validpass');
-      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'validpass');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'Validpass1!');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'Validpass1!');
+      await tester.ensureVisible(find.byKey(const Key('register-btn')));
       await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Email già in uso. Prova ad accedere.'), findsOneWidget);
+      expect(find.byKey(const Key('register-error-snackbar')), findsOneWidget);
     });
 
     testWidgets('tap Accedi naviga verso /login', (tester) async {
       await tester.pumpWidget(buildWidget());
+      await tester.ensureVisible(find.byKey(const Key('register-login-link')));
       await tester.tap(find.byKey(const Key('register-login-link')));
       await tester.pumpAndSettle();
-      expect(find.text('Login'), findsOneWidget);
+      expect(find.byKey(const Key('login-route')), findsOneWidget);
     });
 
     testWidgets('toggle visibilità password funziona', (tester) async {

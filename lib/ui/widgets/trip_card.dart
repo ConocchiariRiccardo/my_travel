@@ -177,6 +177,7 @@ class TripCard extends StatelessWidget {
       ),
       child: Text(
         testo,
+        key: Key('trip-status-${viaggio.id}'),
         style: const TextStyle(
           color: Colors.white,
           fontSize: 12,
@@ -205,9 +206,13 @@ class TripCard extends StatelessWidget {
     final conferma = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Elimina viaggio'),
+        title: const Text(
+          'Elimina viaggio',
+          key: Key('trip-delete-title'),
+        ),
         content: Text(
           'Vuoi eliminare "${viaggio.nome}"? L\'operazione è irreversibile.',
+          key: const Key('trip-delete-message'),
         ),
         actions: [
           TextButton(

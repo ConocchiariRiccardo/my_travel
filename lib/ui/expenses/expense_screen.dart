@@ -444,6 +444,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         ),
         actions: [
           IconButton(
+            key: const Key('expense-pdf-btn'),
             icon: const Icon(Icons.picture_as_pdf_outlined),
             tooltip: 'Genera PDF',
             onPressed: () => Navigator.pushNamed(context, '/pdf',
@@ -457,7 +458,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         builder: (context, _) {
           if (_viewModel.isLoading) {
             return const Center(
-              child: CircularProgressIndicator(color: primaryColor),
+              child: CircularProgressIndicator(key: const Key('expense-loading'), color: primaryColor),
             );
           }
 
@@ -481,6 +482,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const Key('expense-add-fab'),
         onPressed: () => Navigator.pushNamed(
           context,
           '/expenses/add',
@@ -524,6 +526,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           const SizedBox(height: 10),
           Text(
             _viewModel.totaleFormattato,
+            key: const Key('expense-total'),
             style: const TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
@@ -545,6 +548,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               runSpacing: 8,
               children: totalePerCategoria.entries.map((e) {
                 return Container(
+                  key: Key('expense-category-${e.key.toLowerCase()}'),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
@@ -666,6 +670,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           border: Border.all(color: borderColor),
         ),
         child: ListTile(
+          key: Key('expense-item-${spesa.id}'),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 10,
@@ -714,6 +719,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               ],
               Text(
                 spesa.importoFormattato,
+                key: Key('expense-amount-${spesa.id}'),
                 style: TextStyle(
                   color: colore,
                   fontWeight: FontWeight.bold,
@@ -742,6 +748,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
             const SizedBox(height: 16),
             const Text(
               'Nessuna spesa registrata',
+              key: Key('expense-empty-title'),
               style: TextStyle(
                 fontSize: 17,
                 color: textPrimary,

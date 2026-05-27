@@ -27,8 +27,8 @@ void main() {
           child: const LoginScreen(),
         ),
         routes: {
-          '/home': (_) => const Scaffold(body: Text('Home')),
-          '/register': (_) => const Scaffold(body: Text('Register')),
+          '/home': (_) => const Scaffold(body: Text('Home', key: Key('home-route'))),
+          '/register': (_) => const Scaffold(body: Text('Register', key: Key('register-route'))),
         },
       );
 
@@ -73,7 +73,7 @@ void main() {
     testWidgets('bottone Google disabilitato durante isLoading', (tester) async {
       when(mockAuth.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      final btn = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+      final btn = tester.widget<OutlinedButton>(find.byKey(const Key('google-btn')));
       expect(btn.onPressed, isNull);
     });
   });
@@ -141,7 +141,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Password errata. Riprova.'), findsOneWidget);
+      expect(find.byKey(const Key('login-error-snackbar')), findsOneWidget);
     });
 
     testWidgets('navigazione verso /home dopo login riuscito', (tester) async {
@@ -154,7 +154,7 @@ void main() {
       await tester.tap(find.byKey(const Key('login-btn')), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      expect(find.text('Home'), findsOneWidget);
+      expect(find.byKey(const Key('home-route')), findsOneWidget);
     });
 
     testWidgets('chiama loginWithGoogle al tap', (tester) async {
@@ -174,7 +174,7 @@ void main() {
       await tester.ensureVisible(reg);
       await tester.tap(reg);
       await tester.pumpAndSettle();
-      expect(find.text('Register'), findsOneWidget);
+      expect(find.byKey(const Key('register-route')), findsOneWidget);
     });
   });
 }

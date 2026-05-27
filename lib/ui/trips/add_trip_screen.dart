@@ -117,6 +117,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
     if (_dataInizio == null || _dataFine == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
+          key: Key('addtrip-date-error-snackbar'),
           content: Text('Seleziona le date di inizio e fine viaggio.'),
           backgroundColor: errorColor,
         ),
@@ -208,12 +209,14 @@ class _AddTripScreenState extends State<AddTripScreen> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
+                        key: const Key('addtrip-loading'),
                         strokeWidth: 2,
                         color: primaryColor,
                       ),
                     ),
                   )
                 : TextButton(
+                    key: const Key('addtrip-save-btn'),
                     onPressed: _salvaViaggio,
                     child: const Text(
                       'Salva',
@@ -238,6 +241,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               controller: _nomeController,
               hintText: 'es. Trasferta Milano Q1',
               icon: Icons.work_outline,
+              fieldKey: 'addtrip-name-field',
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Campo obbligatorio' : null,
             ),
@@ -247,6 +251,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               controller: _destinazioneController,
               hintText: 'es. Milano, Roma, Berlino',
               icon: Icons.location_on_outlined,
+              fieldKey: 'addtrip-destination-field',
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Campo obbligatorio' : null,
             ),
@@ -258,6 +263,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               icon: Icons.flight_takeoff_rounded,
               data: _dataInizio,
               onTap: () => _selezionaData(isInizio: true),
+              cardKey: 'addtrip-date-inizio',
             ),
             const SizedBox(height: 12),
             _buildDateCard(
@@ -265,6 +271,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               icon: Icons.flight_land_rounded,
               data: _dataFine,
               onTap: () => _selezionaData(isInizio: false),
+              cardKey: 'addtrip-date-fine',
             ),
             const SizedBox(height: 24),
             _buildSectionTitle('Attività pianificate'),
@@ -282,6 +289,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    key: const Key('addtrip-activity-field'),
                     controller: _attivitaController,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: _fieldDecoration(
@@ -296,6 +304,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                   height: 52,
                   width: 52,
                   child: ElevatedButton(
+                    key: const Key('addtrip-add-activity-btn'),
                     onPressed: _aggiungiAttivita,
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
@@ -341,6 +350,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                           ),
                           title: Text(
                             a.nome,
+                            key: Key('addtrip-activity-title-$index'),
                             style: const TextStyle(
                               fontSize: 15,
                               color: textPrimary,
@@ -348,6 +358,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                             ),
                           ),
                           trailing: IconButton(
+                            key: Key('addtrip-remove-activity-$index'),
                             icon: const Icon(
                               Icons.remove_circle_outline,
                               color: errorColor,
@@ -419,6 +430,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
     required String hintText,
     required IconData icon,
     String? Function(String?)? validator,
+    String? fieldKey,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,6 +445,9 @@ class _AddTripScreenState extends State<AddTripScreen> {
         ),
         const SizedBox(height: 6),
         TextFormField(
+          key: fieldKey != null
+              ? Key(fieldKey)
+              : Key('addtrip-${label.replaceAll(' ', '-').toLowerCase()}-field'),
           controller: controller,
           textCapitalization: TextCapitalization.words,
           style: const TextStyle(
@@ -454,10 +469,14 @@ class _AddTripScreenState extends State<AddTripScreen> {
     required IconData icon,
     required DateTime? data,
     required VoidCallback onTap,
+    String? cardKey,
   }) {
     final hasValue = data != null;
 
     return Material(
+      key: cardKey != null
+          ? Key(cardKey)
+          : Key('addtrip-${label.replaceAll(' ', '-').toLowerCase()}'),
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(

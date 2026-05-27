@@ -333,12 +333,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
+                        key: Key('addexpense-loading'),
                         strokeWidth: 2,
                         color: primaryColor,
                       ),
                     ),
                   )
                 : TextButton(
+                    key: const Key('addexpense-save-btn'),
                     onPressed: canSave ? _salvaSpesa : null,
                     child: Text(
                       'Salva',
@@ -361,6 +363,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             GestureDetector(
               onTap: _mostraSceltaSorgente,
               child: Container(
+                key: const Key('addexpense-photo-area'),
                 height: 190,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -428,6 +431,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               SizedBox(height: 12),
                               Text(
                                 'Fotografa lo scontrino',
+                                key: const Key('addexpense-photo-title'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -450,6 +454,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             _buildSectionTitle('Dettagli spesa'),
             const SizedBox(height: 12),
             _buildLabeledField(
+              fieldKey: const Key('addexpense-description'),
               label: 'Descrizione',
               controller: _descrizioneController,
               hintText: 'es. Cena cliente, Taxi aeroporto',
@@ -460,6 +465,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
             const SizedBox(height: 14),
             _buildLabeledField(
+              fieldKey: const Key('addexpense-amount'),
               label: 'Importo (€)',
               controller: _importoController,
               hintText: 'es. 24,50',
@@ -484,6 +490,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 return GestureDetector(
                   onTap: () => setState(() => _categoriaSelezionata = cat),
                   child: Container(
+                    key: Key('addexpense-category-${cat.toLowerCase()}'),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 12,
@@ -570,6 +577,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     required TextEditingController controller,
     required String hintText,
     required IconData icon,
+    Key? fieldKey,
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
     TextCapitalization textCapitalization = TextCapitalization.none,
@@ -587,6 +595,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ),
         const SizedBox(height: 6),
         TextFormField(
+          key: fieldKey,
           controller: controller,
           validator: validator,
           keyboardType: keyboardType,
@@ -606,6 +615,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   Widget _buildDateCard() {
     return Material(
+      key: const Key('addexpense-date'),
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
