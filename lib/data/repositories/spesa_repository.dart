@@ -1,15 +1,19 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../domain/models/spesa.dart';
 
 class SpesaRepository {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore db = FirebaseFirestore.instance;
+  final FirebaseStorage storage = FirebaseStorage.instance;
 
-  CollectionReference<Map<String, dynamic>> _ref(
+  CollectionReference<Map<String, dynamic>> ref(
     String userId,
     String viaggioId,
   ) {
-    return _db
+    return db
         .collection('users')
         .doc(userId)
         .collection('viaggi')
@@ -18,21 +22,21 @@ class SpesaRepository {
   }
 
   Stream<List<Spesa>> streamSpese(String userId, String viaggioId) {
-    return _ref(userId, viaggioId)
+    return ref(userId, viaggioId)
         .orderBy('data', descending: true)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => Spesa.fromJson(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snap) => snap.docs
+              .map((doc) => Spesa.fromJson(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   Future<List<Spesa>> getSpese(String userId, String viaggioId) async {
-    final snap = await _ref(userId, viaggioId)
-        .orderBy('data', descending: false)
-        .get();
-    return snap.docs
-        .map((doc) => Spesa.fromJson(doc.id, doc.data()))
-        .toList();
+    final snap =
+        await ref(userId, viaggioId).orderBy('data', descending: false).get();
+
+    return snap.docs.map((doc) => Spesa.fromJson(doc.id, doc.data())).toList();
   }
 
   Future<void> aggiungi(
@@ -40,7 +44,7 @@ class SpesaRepository {
     String viaggioId,
     Spesa spesa,
   ) async {
-    await _ref(userId, viaggioId).doc(spesa.id).set(spesa.toJson());
+    await ref(userId, viaggioId).doc(spesa.id).set(spesa.toJson());
   }
 
   Future<void> aggiorna(
@@ -48,7 +52,7 @@ class SpesaRepository {
     String viaggioId,
     Spesa spesa,
   ) async {
-    await _ref(userId, viaggioId).doc(spesa.id).update(spesa.toJson());
+    await ref(userId, viaggioId).doc(spesa.id).update(spesa.toJson());
   }
 
   Future<void> elimina(
@@ -56,11 +60,34 @@ class SpesaRepository {
     String viaggioId,
     String spesaId,
   ) async {
-    await _ref(userId, viaggioId).doc(spesaId).delete();
+    await ref(userId, viaggioId).doc(spesaId).delete();
   }
 
   Future<double> getTotale(String userId, String viaggioId) async {
     final spese = await getSpese(userId, viaggioId);
     return spese.fold<double>(0.0, (somma, s) => somma + s.importo);
+  }
+
+  Future<String> caricaScontrino({
+    required String userId,
+    required String viaggioId,
+    required String spesaId,
+    required File immagine,
+  }) async {
+    final storageRef = storage
+        .ref()
+        .child('users')
+        .child(userId)
+        .child('viaggi')
+        .child(viaggioId)
+        .child('scontrini')
+        .child('$spesaId.jpg');
+
+    final uploadTask = await storageRef.putFile(
+      immagine,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+
+    return await uploadTask.ref.getDownloadURL();
   }
 }

@@ -14,7 +14,6 @@ import 'ui/trips/trip_detail_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
 import 'ui/expenses/expense_screen.dart';
 import 'ui/expenses/add_expense_screen.dart';
-import 'ui/expenses/pdf_preview_screen.dart';
 import 'ui/workspace/workspace_screen.dart';
 import 'data/services/notification_service.dart';
 import 'ui/profile/profile_screen.dart';
@@ -24,6 +23,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ui/theme/theme_view_model.dart';
 import 'ui/profile/subpages/settings_screen.dart';
 import 'ui/theme/locale_view_model.dart';
+import 'ui/expenses/pdf_preview_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

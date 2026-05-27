@@ -12,6 +12,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color primaryColorDark = Color(0xFF233F95);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,15 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final userId = authVm.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: [
-          // --- AppBar espandibile ---
           SliverAppBar(
-            expandedHeight: 140,
+            expandedHeight: 165,
             floating: false,
             pinned: true,
-            backgroundColor: const Color(0xFF1E3A8A),
+            elevation: 0,
+            backgroundColor: primaryColor,
+            surfaceTintColor: Colors.transparent,
             actions: [
               IconButton(
                 icon:
@@ -66,65 +74,133 @@ class _HomeScreenState extends State<HomeScreen> {
                 tooltip: 'Profilo',
                 onPressed: () => Navigator.pushNamed(context, '/profile'),
               ),
+              const SizedBox(width: 4),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-              title: const Text(
-                'I miei viaggi',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+              titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+              title: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'I miei viaggi',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Gestisci trasferte, attività e spese in un unico posto',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.85),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                    colors: [
+                      primaryColor,
+                      primaryColorDark,
+                    ],
                   ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: -30,
+                      right: -20,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 40,
+                      right: 30,
+                      child: Icon(
+                        Icons.flight_rounded,
+                        size: 72,
+                        color: Colors.white.withOpacity(0.10),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-
-          // --- Barra di ricerca ---
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: TextField(
                 controller: _searchController,
-                onChanged: (testo) =>
-                    context.read<HomeViewModel>().cercaViaggio(testo),
+                onChanged: (testo) {
+                  setState(() {});
+                  context.read<HomeViewModel>().cercaViaggio(testo);
+                },
                 decoration: InputDecoration(
                   hintText: 'Cerca per nome o destinazione...',
-                  prefixIcon: const Icon(Icons.search),
+                  hintStyle: const TextStyle(
+                    color: textSecondary,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: textSecondary,
+                  ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear),
+                          icon: const Icon(
+                            Icons.clear,
+                            color: textSecondary,
+                          ),
                           onPressed: () {
-                            _searchController.clear();
+                            setState(() {
+                              _searchController.clear();
+                            });
                             context.read<HomeViewModel>().cercaViaggio('');
                           },
                         )
                       : null,
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: primaryColor,
+                      width: 1.5,
+                    ),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: borderColor),
                   ),
                 ),
               ),
             ),
           ),
-
-          // --- Filtri chip ---
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -139,11 +215,25 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
-          // --- Contenuto principale ---
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
+              child: Text(
+                'Trasferte attive',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+          ),
           if (homeVm.isLoading)
             const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: CircularProgressIndicator(color: primaryColor),
+              ),
             )
           else if (homeVm.errorMessage != null)
             SliverFillRemaining(
@@ -154,37 +244,47 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _EmptyState(),
             )
           else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final viaggio = homeVm.viaggi[index];
-                  return TripCard(
-                    viaggio: viaggio,
-                    onTap: () {
-                      // Fase 3: naviga al dettaglio
-                      Navigator.pushNamed(context, '/trip',
-                          arguments: viaggio.id);
-                    },
-                    onDelete: () => homeVm.elimina(userId, viaggio.id),
-                  );
-                },
-                childCount: homeVm.viaggi.length,
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final viaggio = homeVm.viaggi[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TripCard(
+                        viaggio: viaggio,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/trip',
+                            arguments: viaggio.id,
+                          );
+                        },
+                        onDelete: () => homeVm.elimina(userId, viaggio.id),
+                      ),
+                    );
+                  },
+                  childCount: homeVm.viaggi.length,
+                ),
               ),
             ),
-
-          // Spazio sotto l'ultima card (sopra il FAB)
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
         ],
       ),
-
-      // --- FAB: aggiungi viaggio ---
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.pushNamed(context, '/add-trip'),
-        backgroundColor: const Color(0xFF1E3A8A),
+        backgroundColor: primaryColor,
+        elevation: 0,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Nuovo viaggio',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
     );
@@ -197,65 +297,106 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeViewModel vm,
   ) {
     final isSelected = vm.filtroCorrente == valore;
+
     return FilterChip(
       label: Text(etichetta),
       selected: isSelected,
       onSelected: (_) => context.read<HomeViewModel>().impostaFiltro(valore),
-      selectedColor: const Color(0xFF1E3A8A),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.grey.shade700,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
-      checkmarkColor: Colors.white,
+      showCheckmark: false,
+      selectedColor: primaryColor.withOpacity(0.12),
       backgroundColor: Colors.white,
+      side: BorderSide(
+        color: isSelected ? primaryColor : borderColor,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      labelStyle: TextStyle(
+        color: isSelected ? primaryColor : textSecondary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
     );
   }
 
   Widget _buildErrorState(String messaggio) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.wifi_off_rounded, size: 56, color: Colors.grey),
-          const SizedBox(height: 12),
-          Text(messaggio, style: const TextStyle(color: Colors.grey)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.wifi_off_rounded,
+              size: 56,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Connessione non disponibile',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              messaggio,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// Widget separato e const per lo stato vuoto (ottimizza i rebuild)
 class _EmptyState extends StatelessWidget {
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+
   const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.luggage_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Nessun viaggio in programma',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade500,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.luggage_outlined,
+              size: 80,
+              color: Colors.grey.shade300,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Premi il bottone + per aggiungere\nla tua prima trasferta.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade400),
-          ),
-        ],
+            const SizedBox(height: 16),
+            const Text(
+              'Nessun viaggio in programma',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Premi “Nuovo viaggio” per aggiungere la tua prima trasferta.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

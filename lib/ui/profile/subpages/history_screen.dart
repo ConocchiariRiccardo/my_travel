@@ -195,11 +195,14 @@ class _HistoryCard extends StatelessWidget {
           const Divider(height: 1, color: borderColor),
           const SizedBox(height: 16),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoItem(
-                Icons.calendar_today_outlined,
-                'Periodo',
-                '${dateFormat.format(viaggio.dataInizio)}\n${dateFormat.format(viaggio.dataFine)}',
+              Expanded(
+                child: _buildInfoItem(
+                  Icons.calendar_today_outlined,
+                  'Periodo',
+                  '${dateFormat.format(viaggio.dataInizio)}\n${dateFormat.format(viaggio.dataFine)}',
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -249,43 +252,41 @@ class _HistoryCard extends StatelessWidget {
   }
 
   Widget _buildInfoItem(IconData icona, String label, String valore) {
-    return Expanded(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icona,
-            size: 16,
-            color: primaryColor,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icona,
+          size: 16,
+          color: primaryColor,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: primaryColor,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  valore,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: textPrimary,
-                    height: 1.35,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                valore,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                  height: 1.35,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

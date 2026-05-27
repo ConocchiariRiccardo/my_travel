@@ -22,6 +22,13 @@ class TripDetailScreen extends StatefulWidget {
 }
 
 class _TripDetailScreenState extends State<TripDetailScreen> {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
+  static const Color errorColor = Color(0xFFF44336);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   late final TripDetailViewModel _viewModel;
   late final bool _ownsViewModel;
   final _uuid = const Uuid();
@@ -44,76 +51,114 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     super.dispose();
   }
 
-  // Apre Booking con la destinazione precompilata
   Future<void> _apriBooking(String destinazione) async {
     final query = Uri.encodeComponent(destinazione);
-    final uri = Uri.parse(
-      'https://www.booking.com/search.html?ss=$query',
-    );
+    final uri = Uri.parse('https://www.booking.com/search.html?ss=$query');
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossibile aprire Booking.')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossibile aprire Booking.'),
+          backgroundColor: errorColor,
+        ),
+      );
     }
   }
 
-  // Apre Skyscanner con la destinazione precompilata
   Future<void> _apriSkyscanner(String destinazione) async {
     final query = Uri.encodeComponent(destinazione);
     final uri = Uri.parse(
       'https://www.skyscanner.it/trasporti/voli/results/?query=$query',
     );
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossibile aprire Skyscanner.')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossibile aprire Skyscanner.'),
+          backgroundColor: errorColor,
+        ),
+      );
     }
   }
 
-  // Dialog per aggiungere una nuova attività
   Future<void> _mostraDialogAggiungiAttivita() async {
     final controller = TextEditingController();
     final userId = context.read<AuthViewModel>().currentUser!.uid;
 
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Nuova attività'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'es. Riunione con cliente',
-            border: OutlineInputBorder(),
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
           ),
-          onSubmitted: (_) => Navigator.of(ctx).pop(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Annulla'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF1E3A8A),
+          title: const Text(
+            'Nuova attività',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: textPrimary,
             ),
-            child: const Text('Aggiungi'),
           ),
-        ],
-      ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              hintText: 'es. Riunione con cliente',
+              hintStyle: const TextStyle(color: textSecondary),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: primaryColor, width: 1.5),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                'Annulla',
+                style: TextStyle(color: textSecondary),
+              ),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              style: FilledButton.styleFrom(
+                backgroundColor: primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Aggiungi'),
+            ),
+          ],
+        );
+      },
     );
 
     final testo = controller.text.trim();
+    controller.dispose();
+
     if (testo.isEmpty) return;
 
     final nuovaAttivita = Attivita(id: _uuid.v4(), nome: testo);
@@ -127,38 +172,53 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_viewModel.errorMessage ?? 'Errore sconosciuto.'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorColor,
         ),
       );
     }
-
-    controller.dispose();
   }
 
-  // Dialog conferma completamento viaggio
   Future<void> _confermaCompletamento() async {
     final conferma = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Concludi viaggio'),
-        content: const Text(
-          'Vuoi spostare questo viaggio nello Storico? '
-          'Non sarà più modificabile.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annulla'),
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF1E3A8A),
+          title: const Text(
+            'Concludi viaggio',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: textPrimary,
             ),
-            child: const Text('Concludi'),
           ),
-        ],
-      ),
+          content: const Text(
+            'Vuoi spostare questo viaggio nello storico? Non sarà più modificabile.',
+            style: TextStyle(color: textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text(
+                'Annulla',
+                style: TextStyle(color: textSecondary),
+              ),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Concludi'),
+            ),
+          ],
+        );
+      },
     );
 
     if (conferma != true) return;
@@ -172,7 +232,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Viaggio spostato nello storico! ✅'),
-          backgroundColor: Colors.green,
+          backgroundColor: primaryColor,
         ),
       );
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -180,7 +240,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_viewModel.errorMessage ?? 'Errore.'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorColor,
         ),
       );
     }
@@ -193,15 +253,31 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       builder: (context, _) {
         if (_viewModel.isLoading) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            backgroundColor: backgroundColor,
+            body: Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            ),
           );
         }
 
         final viaggio = _viewModel.viaggio;
         if (viaggio == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Dettaglio')),
-            body: const Center(child: Text('Viaggio non trovato.')),
+            backgroundColor: backgroundColor,
+            appBar: AppBar(
+              title: const Text('Dettaglio viaggio'),
+              centerTitle: true,
+              elevation: 0,
+              backgroundColor: backgroundColor,
+              foregroundColor: textPrimary,
+              surfaceTintColor: Colors.transparent,
+            ),
+            body: const Center(
+              child: Text(
+                'Viaggio non trovato.',
+                style: TextStyle(color: textSecondary),
+              ),
+            ),
           );
         }
 
@@ -210,230 +286,204 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         final percentuale = _viewModel.percentualeCompletamento;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F7FA),
-          body: CustomScrollView(
-            slivers: [
-              // --- AppBar con gradiente ---
-              SliverAppBar(
-                expandedHeight: 200,
-                pinned: true,
-                backgroundColor: const Color(0xFF1E3A8A),
-                leading: IconButton(
-                  icon:
-                      const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            title: const Text(
+              'Dettaglio viaggio',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 17,
+              ),
+            ),
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: backgroundColor,
+            foregroundColor: textPrimary,
+            surfaceTintColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: textPrimary),
+            actions: [
+              TextButton(
+                onPressed: _confermaCompletamento,
+                child: const Text(
+                  'Concludi',
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.check_circle_outline,
-                        color: Colors.white),
-                    tooltip: 'Concludi viaggio',
-                    onPressed: _confermaCompletamento,
+              ),
+            ],
+          ),
+          body: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            children: [
+              _TripHeaderCard(
+                nome: viaggio.nome,
+                destinazione: viaggio.destinazione,
+                dataInizio: viaggio.dataInizio,
+                dataFine: viaggio.dataFine,
+                giorniAllaPartenza: viaggio.giorniAllaPartenza,
+                isInCorso: viaggio.isInCorso,
+                dateFormat: _dateFormat,
+              ),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Link utili'),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickActionTile(
+                      label: 'Booking',
+                      icon: Icons.hotel_outlined,
+                      onTap: () => _apriBooking(viaggio.destinazione),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _QuickActionTile(
+                      label: 'Skyscanner',
+                      icon: Icons.flight_outlined,
+                      onTap: () => _apriSkyscanner(viaggio.destinazione),
+                    ),
                   ),
                 ],
-                flexibleSpace: FlexibleSpaceBar(
-                  titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-                  title: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildSectionTitle('Attività'),
+                  TextButton.icon(
+                    onPressed: _mostraDialogAggiungiAttivita,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Aggiungi'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              if (attivita.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Row(
                     children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: percentuale,
+                            backgroundColor: Colors.grey.shade200,
+                            color: primaryColor,
+                            minHeight: 8,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                       Text(
-                        viaggio.nome,
+                        '${(percentuale * 100).round()}%',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: primaryColor,
+                          fontSize: 13,
                         ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined,
-                              color: Colors.white70, size: 13),
-                          const SizedBox(width: 3),
-                          Text(
-                            viaggio.destinazione,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-                  background: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
-                      ),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.flight_rounded,
-                        size: 80,
-                        color: Colors.white24,
-                      ),
-                    ),
-                  ),
                 ),
-              ),
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+                const SizedBox(height: 12),
+              ] else
+                const SizedBox(height: 12),
+              if (attivita.isEmpty)
+                _EmptyAttivita(
+                  onAggiungi: _mostraDialogAggiungiAttivita,
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // --- Card info date + countdown ---
-                      _InfoCard(
-                        dataInizio: viaggio.dataInizio,
-                        dataFine: viaggio.dataFine,
-                        giorniAllaPartenza: viaggio.giorniAllaPartenza,
-                        isInCorso: viaggio.isInCorso,
-                        dateFormat: _dateFormat,
-                      ),
+                    children: attivita.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final a = entry.value;
 
-                      const SizedBox(height: 20),
-
-                      // --- Quick Links: Booking + Skyscanner ---
-                      _buildSectionTitle('Prenota rapidamente'),
-                      const SizedBox(height: 10),
-                      Row(
+                      return Column(
                         children: [
-                          Expanded(
-                            child: _QuickLinkButton(
-                              label: 'Booking',
-                              icon: Icons.hotel_outlined,
-                              colore: const Color(0xFF003580),
-                              onTap: () => _apriBooking(viaggio.destinazione),
-                            ),
+                          _AttivitaTile(
+                            attivita: a,
+                            onToggle: () =>
+                                _viewModel.toggle(userId, widget.viaggioId, a),
+                            onDelete: () => _viewModel.elimina(
+                                userId, widget.viaggioId, a.id),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _QuickLinkButton(
-                              label: 'Skyscanner',
-                              icon: Icons.flight_outlined,
-                              colore: const Color(0xFF0770E3),
-                              onTap: () =>
-                                  _apriSkyscanner(viaggio.destinazione),
-                            ),
-                          ),
+                          if (index != attivita.length - 1)
+                            const Divider(height: 1, color: borderColor),
                         ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // --- Sezione Attività ---
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildSectionTitle('Attività'),
-                          TextButton.icon(
-                            onPressed: _mostraDialogAggiungiAttivita,
-                            icon: const Icon(Icons.add, size: 18),
-                            label: const Text('Aggiungi'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF1E3A8A),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Barra progresso attività
-                      if (attivita.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: percentuale,
-                                  backgroundColor: Colors.grey.shade200,
-                                  color: const Color(0xFF1E3A8A),
-                                  minHeight: 6,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              '${(percentuale * 100).round()}%',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A8A),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-
-                      // Lista attività
-                      if (attivita.isEmpty)
-                        _EmptyAttivita(
-                          onAggiungi: _mostraDialogAggiungiAttivita,
-                        )
-                      else
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: attivita.map((a) {
-                              return _AttivitaTile(
-                                attivita: a,
-                                onToggle: () => _viewModel.toggle(
-                                    userId, widget.viaggioId, a),
-                                onDelete: () => _viewModel.elimina(
-                                    userId, widget.viaggioId, a.id),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // --- Bottone Spese ---
-                      _buildSectionTitle('Spese'),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          key: const Key('manage-expenses-button'),
-                          onPressed: () {
-                            // Fase 5: gestione spese
-                            Navigator.pushNamed(context, '/expenses',
-                                arguments: widget.viaggioId);
-                          },
-                          icon: const Icon(Icons.receipt_long_outlined),
-                          label: const Text('Gestisci spese e scontrini'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(color: Color(0xFF1E3A8A)),
-                            foregroundColor: const Color(0xFF1E3A8A),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 80),
-                    ],
+                      );
+                    }).toList(),
                   ),
                 ),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Spese'),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor),
+                ),
+                child: ListTile(
+                  key: const Key('manage-expenses-button'),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.10),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long_outlined,
+                      color: primaryColor,
+                    ),
+                  ),
+                  title: const Text(
+                    'Gestisci spese e scontrini',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: textSecondary,
+                  ),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/expenses',
+                      arguments: widget.viaggioId,
+                    );
+                  },
+                ),
               ),
+              const SizedBox(height: 28),
             ],
           ),
         );
@@ -443,29 +493,34 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
   Widget _buildSectionTitle(String titolo) {
     return Text(
-      titolo.toUpperCase(),
-      style: TextStyle(
-        fontSize: 11,
+      titolo,
+      style: const TextStyle(
+        fontSize: 13,
         fontWeight: FontWeight.bold,
-        color: Colors.grey.shade500,
+        color: primaryColor,
         letterSpacing: 0.8,
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────
-// Widget estratti (const dove possibile)
-// ─────────────────────────────────────────────
+class _TripHeaderCard extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
 
-class _InfoCard extends StatelessWidget {
+  final String nome;
+  final String destinazione;
   final DateTime dataInizio;
   final DateTime dataFine;
   final int giorniAllaPartenza;
   final bool isInCorso;
   final DateFormat dateFormat;
 
-  const _InfoCard({
+  const _TripHeaderCard({
+    required this.nome,
+    required this.destinazione,
     required this.dataInizio,
     required this.dataFine,
     required this.giorniAllaPartenza,
@@ -482,69 +537,109 @@ class _InfoCard extends StatelessWidget {
       countdownTesto = 'In corso';
       countdownColore = Colors.green.shade600;
     } else if (giorniAllaPartenza == 0) {
-      countdownTesto = 'Partenza oggi!';
+      countdownTesto = 'Partenza oggi';
       countdownColore = Colors.orange.shade700;
     } else if (giorniAllaPartenza > 0) {
       countdownTesto =
           'Tra $giorniAllaPartenza ${giorniAllaPartenza == 1 ? "giorno" : "giorni"}';
-      countdownColore = const Color(0xFF1E3A8A);
+      countdownColore = primaryColor;
     } else {
-      countdownTesto = 'Viaggio concluso';
+      countdownTesto = 'Concluso';
       countdownColore = Colors.grey;
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Partenza',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.10),
+                  shape: BoxShape.circle,
                 ),
-                Text(
-                  dateFormat.format(dataInizio),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 15),
+                child: const Icon(
+                  Icons.flight_rounded,
+                  color: primaryColor,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Ritorno',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nome,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 15,
+                          color: textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            destinazione,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                Text(
-                  dateFormat.format(dataFine),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _InfoMiniBlock(
+                  label: 'Partenza',
+                  value: dateFormat.format(dataInizio),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _InfoMiniBlock(
+                  label: 'Ritorno',
+                  value: dateFormat.format(dataFine),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: countdownColore.withOpacity(0.1),
+              color: countdownColore.withOpacity(0.10),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               countdownTesto,
               style: TextStyle(
                 color: countdownColore,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
             ),
@@ -555,50 +650,115 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _QuickLinkButton extends StatelessWidget {
+class _InfoMiniBlock extends StatelessWidget {
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
+  final String label;
+  final String value;
+
+  const _InfoMiniBlock({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionTile extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final String label;
   final IconData icon;
-  final Color colore;
   final VoidCallback onTap;
 
-  const _QuickLinkButton({
+  const _QuickActionTile({
     required this.label,
     required this.icon,
-    required this.colore,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: colore,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: colore.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.white, size: 26),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: primaryColor, size: 22),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                'Apri',
+                style: TextStyle(
+                  color: textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -606,6 +766,9 @@ class _QuickLinkButton extends StatelessWidget {
 }
 
 class _AttivitaTile extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color errorColor = Color(0xFFF44336);
+
   final Attivita attivita;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
@@ -619,6 +782,7 @@ class _AttivitaTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       leading: GestureDetector(
         key: Key('activity-toggle-${attivita.id}'),
         onTap: onToggle,
@@ -628,13 +792,10 @@ class _AttivitaTile extends StatelessWidget {
           height: 24,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: attivita.isCompletata
-                ? const Color(0xFF1E3A8A)
-                : Colors.transparent,
+            color: attivita.isCompletata ? primaryColor : Colors.transparent,
             border: Border.all(
-              color: attivita.isCompletata
-                  ? const Color(0xFF1E3A8A)
-                  : Colors.grey.shade400,
+              color:
+                  attivita.isCompletata ? primaryColor : Colors.grey.shade400,
               width: 2,
             ),
           ),
@@ -646,6 +807,8 @@ class _AttivitaTile extends StatelessWidget {
       title: Text(
         attivita.nome,
         style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
           decoration: attivita.isCompletata
               ? TextDecoration.lineThrough
               : TextDecoration.none,
@@ -654,16 +817,22 @@ class _AttivitaTile extends StatelessWidget {
       ),
       trailing: IconButton(
         key: Key('activity-delete-${attivita.id}'),
-        icon:
-            const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+        icon: const Icon(
+          Icons.delete_outline,
+          size: 20,
+          color: errorColor,
+        ),
         onPressed: onDelete,
       ),
-      dense: true,
     );
   }
 }
 
 class _EmptyAttivita extends StatelessWidget {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final VoidCallback onAggiungi;
 
   const _EmptyAttivita({required this.onAggiungi});
@@ -675,19 +844,29 @@ class _EmptyAttivita extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
           Icon(Icons.checklist_rounded, size: 44, color: Colors.grey.shade300),
-          const SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 10),
+          const Text(
             'Nessuna attività pianificata',
-            style: TextStyle(color: Colors.grey.shade500),
+            style: TextStyle(
+              color: textSecondary,
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 12),
           TextButton(
             onPressed: onAggiungi,
-            child: const Text('+ Aggiungi la prima attività'),
+            child: const Text(
+              '+ Aggiungi la prima attività',
+              style: TextStyle(
+                color: primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

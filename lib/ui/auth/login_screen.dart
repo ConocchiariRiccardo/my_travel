@@ -10,8 +10,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static const Color primaryColor = Color(0xFF1E3A8A);
+  static const Color backgroundColor = Colors.white;
+  static const Color errorColor = Color(0xFFF44336);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color borderColor = Color(0xFFE0E0E0);
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _passwordVisibile = false;
 
   @override
@@ -22,10 +30,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
+    FocusScope.of(context).unfocus();
+
     final authViewModel = context.read<AuthViewModel>();
     final successo = await authViewModel.login(
-      _emailController.text,
-      _passwordController.text,
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
     );
 
     if (!mounted) return;
@@ -36,13 +46,15 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authViewModel.errorMessage ?? 'Errore di accesso.'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorColor,
         ),
       );
     }
   }
 
   Future<void> _loginGoogle() async {
+    FocusScope.of(context).unfocus();
+
     final authViewModel = context.read<AuthViewModel>();
     final successo = await authViewModel.loginWithGoogle();
 
@@ -54,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authViewModel.errorMessage!),
-          backgroundColor: Colors.red,
+          backgroundColor: errorColor,
         ),
       );
     }
@@ -63,185 +75,282 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthViewModel>().isLoading;
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double logoSize = (screenWidth * 0.6).clamp(140.0, 320.0) as double;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoSize = (screenWidth * 0.42).clamp(120.0, 180.0);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 60),
-
-              // Logo
-              Center(
-                child: SizedBox(
-                  width: logoSize,
-                  height: logoSize,
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'MyTravel',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A8A),
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Gestisci le tue trasferte in modo smart',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-
-              const SizedBox(height: 48),
-
-              // Campo email
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Campo password
-              TextField(
-                controller: _passwordController,
-                obscureText: !_passwordVisibile,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _passwordVisibile
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _passwordVisibile = !_passwordVisibile;
-                      });
-                    },
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // Bottone accedi
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A8A),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Accedi',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Divisore
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.grey.shade300)),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('oppure',
-                        style: TextStyle(color: Colors.grey)),
-                  ),
-                  Expanded(child: Divider(color: Colors.grey.shade300)),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Bottone Google
-              SizedBox(
-                height: 52,
-                child: OutlinedButton.icon(
-                  onPressed: isLoading ? null : _loginGoogle,
-                  icon: const Icon(
-                    Icons.g_mobiledata_rounded,
-                    size: 26,
-                    color: Color(0xFF1E3A8A),
-                  ),
-                  label: const Text(
-                    'Accedi con Google',
-                    style: TextStyle(color: Color(0xFF1E3A8A)),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF1E3A8A)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - 80,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 24),
+                Center(
+                  child: SizedBox(
+                    width: logoSize,
+                    height: logoSize,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Link registrazione
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Non hai un account? ',
-                      style: TextStyle(color: Colors.grey)),
-                  GestureDetector(
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/register'),
-                    child: const Text(
-                      'Registrati',
-                      style: TextStyle(
-                        color: Color(0xFF1E3A8A),
-                        fontWeight: FontWeight.bold,
+                const SizedBox(height: 24),
+                const Text(
+                  'Bentornato',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Accedi per gestire viaggi, attività e trasferte in modo semplice.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 36),
+                _buildSectionLabel('Credenziali'),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: textPrimary,
+                  ),
+                  decoration: _buildInputDecoration(
+                    label: 'Email',
+                    hint: 'nome@azienda.it',
+                    icon: Icons.email_outlined,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: !_passwordVisibile,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => isLoading ? null : _login(),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: textPrimary,
+                  ),
+                  decoration: _buildInputDecoration(
+                    label: 'Password',
+                    hint: 'Inserisci la password',
+                    icon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      splashRadius: 20,
+                      icon: Icon(
+                        _passwordVisibile
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: textSecondary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _passwordVisibile = !_passwordVisibile;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: primaryColor.withOpacity(0.55),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Accedi',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-            ],
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(color: Colors.grey.shade300),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'oppure',
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(color: Colors.grey.shade300),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: isLoading ? null : _loginGoogle,
+                    style: OutlinedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: Colors.white,
+                      foregroundColor: textPrimary,
+                      side: const BorderSide(color: borderColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.account_circle_outlined,
+                          color: primaryColor,
+                          size: 22,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Accedi con Google',
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Non hai un account? ',
+                      style: TextStyle(
+                        color: textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, '/register'),
+                      child: const Text(
+                        'Registrati',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionLabel(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: primaryColor,
+        letterSpacing: 0.8,
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required String hint,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: const TextStyle(
+        color: textSecondary,
+        fontSize: 14,
+      ),
+      hintStyle: const TextStyle(
+        color: textSecondary,
+        fontSize: 14,
+      ),
+      prefixIcon: Icon(icon, color: textSecondary),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(
+          color: primaryColor,
+          width: 1.5,
+        ),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: errorColor),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(
+          color: errorColor,
+          width: 1.5,
+        ),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: borderColor),
       ),
     );
   }

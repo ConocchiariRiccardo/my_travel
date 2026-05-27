@@ -22,30 +22,19 @@ class ViaggioRepository {
         .where('isCompletato', isEqualTo: false)
         .orderBy('dataInizio')
         .snapshots()
-        .map((snap) {
-      final oggi = DateTime.now();
-      final mezzanotteOggi = DateTime(oggi.year, oggi.month, oggi.day);
-      return snap.docs
-          .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
-          .where((v) =>
-              v.dataFine.isAfter(mezzanotteOggi) || isSameDay(v.dataFine, oggi))
-          .toList();
-    });
+        .map((snap) => snap.docs
+            .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+            .toList());
   }
 
   Stream<List<Viaggio>> streamCompletati(String userId) {
     return _ref(userId)
+        .where('isCompletato', isEqualTo: true)
         .orderBy('dataFine', descending: true)
         .snapshots()
-        .map((snap) {
-      final oggi = DateTime.now();
-      final mezzanotteOggi = DateTime(oggi.year, oggi.month, oggi.day);
-
-      return snap.docs
-          .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
-          .where((v) => v.dataFine.isBefore(mezzanotteOggi))
-          .toList();
-    });
+        .map((snap) => snap.docs
+            .map((doc) => Viaggio.fromJson(doc.id, doc.data()))
+            .toList());
   }
 
   Future<String> crea(String userId, Viaggio viaggio) async {
