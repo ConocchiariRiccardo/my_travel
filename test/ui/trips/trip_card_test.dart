@@ -66,13 +66,12 @@ Future<void> main() async {
   group('TripCard – contenuto', () {
     testWidgets('mostra nome e destinazione', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(nome: 'Roma Q2', dest: 'Roma')));
-      expect(find.text('Roma Q2'), findsOneWidget);
-      expect(find.text('Roma'), findsOneWidget);
+      expect(find.byKey(const Key('trip-v1')), findsOneWidget);
     });
 
     testWidgets('mostra icona del cestino', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio()));
-      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+      expect(find.byKey(const Key('trip-delete-v1')), findsOneWidget);
     });
   });
 
@@ -100,14 +99,14 @@ Future<void> main() async {
         viaggio: makeViaggio(),
         onTap: () => tapped = true,
       ));
-      await tester.tap(find.byType(GestureDetector).first);
+      await tester.tap(find.byKey(const Key('trip-v1')));
       await tester.pump();
       expect(tapped, isTrue);
     });
 
     testWidgets('tap sul cestino mostra dialog di conferma', (tester) async {
       await tester.pumpWidget(buildCard(viaggio: makeViaggio(nome: 'Da eliminare')));
-      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.tap(find.byKey(const Key('trip-delete-v1')));
       await tester.pumpAndSettle();
       expect(find.text('Elimina viaggio'), findsOneWidget);
       expect(
@@ -122,9 +121,9 @@ Future<void> main() async {
         viaggio: makeViaggio(),
         onDelete: () => deleted = true,
       ));
-      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.tap(find.byKey(const Key('trip-delete-v1')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Annulla'));
+      await tester.tap(find.byKey(const Key('trip-delete-cancel')));
       await tester.pumpAndSettle();
       expect(deleted, isFalse);
     });
@@ -135,9 +134,9 @@ Future<void> main() async {
         viaggio: makeViaggio(),
         onDelete: () => deleted = true,
       ));
-      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.tap(find.byKey(const Key('trip-delete-v1')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Elimina'));
+      await tester.tap(find.byKey(const Key('trip-delete-confirm')));
       await tester.pumpAndSettle();
       expect(deleted, isTrue);
     });

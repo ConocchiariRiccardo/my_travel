@@ -86,32 +86,29 @@ void main() {
   group('HomeScreen – rendering', () {
     testWidgets('mostra il titolo I miei viaggi', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('I miei viaggi'), findsOneWidget);
+      expect(find.byKey(const Key('home-title')), findsOneWidget);
     });
 
     testWidgets('mostra la barra di ricerca', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(
-        find.widgetWithText(TextField, 'Cerca per nome o destinazione...'),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('home-search-field')), findsOneWidget);
     });
 
     testWidgets('mostra i tre chip filtro', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Tutti'), findsOneWidget);
-      expect(find.text('In corso'), findsOneWidget);
-      expect(find.text('In arrivo'), findsOneWidget);
+      expect(find.byKey(const Key('filter-tutti')), findsOneWidget);
+      expect(find.byKey(const Key('filter-in_corso')), findsOneWidget);
+      expect(find.byKey(const Key('filter-in_arrivo')), findsOneWidget);
     });
 
     testWidgets('mostra il FAB Nuovo viaggio', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Nuovo viaggio'), findsOneWidget);
+      expect(find.byKey(const Key('new-trip-btn')), findsOneWidget);
     });
 
     testWidgets('mostra stato vuoto quando la lista è vuota', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Nessun viaggio in programma'), findsOneWidget);
+      expect(find.byKey(const Key('home-empty-title')), findsOneWidget);
     });
   });
 
@@ -136,8 +133,8 @@ void main() {
         makeViaggio(id: 'v2', nome: 'Roma Sprint'),
       ]);
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Milano Q1'), findsOneWidget);
-      expect(find.text('Roma Sprint'), findsOneWidget);
+      expect(find.byKey(const Key('trip-v1')), findsOneWidget);
+      expect(find.byKey(const Key('trip-v2')), findsOneWidget);
     });
 
     testWidgets('mostra la destinazione nelle card', (tester) async {
@@ -145,36 +142,34 @@ void main() {
         makeViaggio(nome: 'Test', dest: 'Berlino'),
       ]);
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Berlino'), findsOneWidget);
+      expect(find.byKey(const Key('trip-v1')), findsOneWidget);
     });
 
     testWidgets('non mostra stato vuoto quando ci sono viaggi', (tester) async {
       when(mockHome.viaggi).thenReturn([makeViaggio()]);
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Nessun viaggio in programma'), findsNothing);
+      expect(find.byKey(const Key('home-empty-title')), findsNothing);
     });
   });
 
   group('HomeScreen – filtri', () {
     testWidgets('tap su "In corso" chiama impostaFiltro', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('In corso'));
+      await tester.tap(find.byKey(const Key('filter-in_corso')));
       await tester.pump();
       verify(mockHome.impostaFiltro('in_corso')).called(1);
     });
 
     testWidgets('tap su "In arrivo" chiama impostaFiltro', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('In arrivo'));
+      await tester.tap(find.byKey(const Key('filter-in_arrivo')));
       await tester.pump();
       verify(mockHome.impostaFiltro('in_arrivo')).called(1);
     });
 
     testWidgets('chip "Tutti" risulta selezionato di default', (tester) async {
       await tester.pumpWidget(buildWidget());
-      final chip = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'Tutti'),
-      );
+      final chip = tester.widget<FilterChip>(find.byKey(const Key('filter-tutti')));
       expect(chip.selected, isTrue);
     });
   });
@@ -182,10 +177,7 @@ void main() {
   group('HomeScreen – ricerca', () {
     testWidgets('digitare nel campo ricerca chiama cercaViaggio', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Cerca per nome o destinazione...'),
-        'Milano',
-      );
+      await tester.enterText(find.byKey(const Key('home-search-field')), 'Milano');
       await tester.pump();
       verify(mockHome.cercaViaggio('Milano')).called(1);
     });
@@ -194,7 +186,7 @@ void main() {
   group('HomeScreen – navigazione', () {
     testWidgets('tap FAB naviga verso /add-trip', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Nuovo viaggio'));
+      await tester.tap(find.byKey(const Key('new-trip-btn')));
       await tester.pumpAndSettle();
       expect(find.text('Stub'), findsOneWidget);
     });

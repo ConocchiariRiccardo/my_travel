@@ -86,32 +86,32 @@ void main() {
     testWidgets('mostra il nome del viaggio nell/AppBar', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('Milano Q1'), findsWidgets);
+      expect(find.byKey(const Key('trip-title')), findsOneWidget);
     });
 
     testWidgets('mostra la destinazione', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('Milano'), findsWidgets);
+      expect(find.byKey(const Key('trip-destination')), findsOneWidget);
     });
 
     testWidgets('mostra spinner durante isLoading', (tester) async {
       when(mockVm.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('trip-loading')), findsOneWidget);
     });
 
     testWidgets('mostra bottone "Gestisci spese e scontrini"', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('Gestisci spese e scontrini'), findsOneWidget);
+      expect(find.byKey(const Key('manage-expenses-button')), findsOneWidget);
     });
 
     testWidgets('mostra i quick-link Booking e Skyscanner', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('Booking'), findsOneWidget);
-      expect(find.text('Skyscanner'), findsOneWidget);
+      expect(find.byKey(const Key('quicklink-Booking')), findsOneWidget);
+      expect(find.byKey(const Key('quicklink-Skyscanner')), findsOneWidget);
     });
   });
 
@@ -120,14 +120,16 @@ void main() {
       when(mockVm.viaggio).thenReturn(makeViaggio(inCorso: true));
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('In corso'), findsOneWidget);
+      final text = tester.widget<Text>(find.byKey(const Key('trip-countdown')));
+      expect(text.data, contains('In corso'));
     });
 
     testWidgets('badge con giorni rimanenti per viaggio futuro', (tester) async {
       when(mockVm.viaggio).thenReturn(makeViaggio(giorniAlPartenza: 10));
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.textContaining('10'), findsWidgets);
+      final text = tester.widget<Text>(find.byKey(const Key('trip-countdown')));
+      expect(text.data, contains('10'));
     });
   });
 
@@ -135,7 +137,7 @@ void main() {
     testWidgets('mostra placeholder quando lista attività è vuota', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('Nessuna attività pianificata'), findsOneWidget);
+      expect(find.byKey(const Key('empty-activities-title')), findsOneWidget);
     });
 
     testWidgets('mostra le attività nella lista', (tester) async {
@@ -145,8 +147,8 @@ void main() {
       ]);
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.text('Riunione cliente'), findsOneWidget);
-      expect(find.text('Pranzo di lavoro'), findsOneWidget);
+      expect(find.byKey(const Key('activity-title-a1')), findsOneWidget);
+      expect(find.byKey(const Key('activity-title-a2')), findsOneWidget);
     });
 
     testWidgets('attività completata mostra testo barrato', (tester) async {
@@ -155,8 +157,7 @@ void main() {
       ]);
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-
-      final text = tester.widget<Text>(find.text('Attività fatta'));
+      final text = tester.widget<Text>(find.byKey(const Key('activity-title-a1')));
       expect(text.style?.decoration, TextDecoration.lineThrough);
     });
 
@@ -165,7 +166,7 @@ void main() {
       when(mockVm.percentualeCompletamento).thenReturn(0.5);
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('trip-progress')), findsOneWidget);
     });
 
     testWidgets('tap sul checkbox chiama toggle sul ViewModel', (tester) async {
@@ -206,7 +207,7 @@ void main() {
     testWidgets('tap concludi mostra dialog di conferma', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      await tester.tap(find.byIcon(Icons.check_circle_outline));
+      await tester.tap(find.byKey(const Key('complete-trip-btn')));
       await tester.pumpAndSettle();
       expect(find.text('Concludi viaggio'), findsOneWidget);
     });
@@ -214,9 +215,9 @@ void main() {
     testWidgets('annulla concludi non chiama completa', (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
-      await tester.tap(find.byIcon(Icons.check_circle_outline));
+      await tester.tap(find.byKey(const Key('complete-trip-btn')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Annulla'));
+      await tester.tap(find.byKey(const Key('conclude-cancel')));
       await tester.pumpAndSettle();
       verifyNever(mockVm.completa(any, any));
     });

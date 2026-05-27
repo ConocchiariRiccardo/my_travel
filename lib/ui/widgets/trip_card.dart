@@ -28,6 +28,7 @@ class TripCard extends StatelessWidget {
     final giorni = viaggio.giorniAllaPartenza;
 
     return GestureDetector(
+      key: Key('trip-${viaggio.id}'),
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -84,6 +85,7 @@ class TripCard extends StatelessWidget {
                 top: 4,
                 right: 4,
                 child: IconButton(
+                  key: Key('trip-delete-${viaggio.id}'),
                   icon: const Icon(Icons.delete_outline, color: Colors.white),
                   onPressed: () => _confirmDelete(context),
                 ),
@@ -209,10 +211,12 @@ class TripCard extends StatelessWidget {
         ),
         actions: [
           TextButton(
+            key: const Key('trip-delete-cancel'),
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Annulla'),
           ),
           FilledButton(
+            key: const Key('trip-delete-confirm'),
             onPressed: () => Navigator.of(ctx).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Elimina'),

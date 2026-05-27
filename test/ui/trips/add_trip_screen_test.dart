@@ -38,46 +38,41 @@ void main() {
   group('AddTripScreen – rendering', () {
     testWidgets('mostra i campi nome e destinazione', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.widgetWithText(TextFormField, 'Nome viaggio'), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, 'Destinazione'), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-name-field')), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-destination-field')), findsOneWidget);
     });
 
     testWidgets('mostra le row per la selezione delle date', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Data inizio'), findsOneWidget);
-      expect(find.text('Data fine'), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-date-inizio')), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-date-fine')), findsOneWidget);
     });
 
     testWidgets('mostra bottone Salva nell\'AppBar', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Salva'), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-save-btn')), findsOneWidget);
     });
 
     testWidgets('campo attività e bottone aggiungi presenti', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(
-        find.widgetWithText(TextField, "Aggiungi un'attività..."),
-        findsOneWidget,
-      );
-      expect(find.byType(IconButton), findsWidgets);
+      expect(find.byKey(const Key('addtrip-activity-field')), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-add-activity-btn')), findsOneWidget);
     });
   });
 
   group('AddTripScreen - validazione', () {
     testWidgets('mostra errore se nome vuoto al salvataggio', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Salva'));
+      await tester.tap(find.byKey(const Key('addtrip-save-btn')));
       await tester.pump();
       expect(find.text('Campo obbligatorio'), findsWidgets);
     });
 
     testWidgets('non salva se le date non sono selezionate', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-          find.widgetWithText(TextFormField, 'Nome viaggio'), 'Test');
-      await tester.enterText(
-          find.widgetWithText(TextFormField, 'Destinazione'), 'Roma');
-      await tester.tap(find.text('Salva'));
+        await tester.enterText(find.byKey(const Key('addtrip-name-field')), 'Test');
+        await tester.enterText(find.byKey(const Key('addtrip-destination-field')), 'Roma');
+        await tester.tap(find.byKey(const Key('addtrip-save-btn')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(
@@ -90,39 +85,31 @@ void main() {
   group('AddTripScreen - gestione attività', () {
     testWidgets('aggiungere un\'attività la mostra in lista', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-        find.widgetWithText(TextField, "Aggiungi un'attività..."),
-        'Riunione',
-      );
+      await tester.enterText(find.byKey(const Key('addtrip-activity-field')), 'Riunione');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
-      expect(find.text('Riunione'), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-activity-title-0')), findsOneWidget);
     });
 
     testWidgets('tap X rimuove l\'attività dalla lista', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-        find.widgetWithText(TextField, "Aggiungi un'attività..."),
-        'Da rimuovere',
-      );
+      await tester.enterText(find.byKey(const Key('addtrip-activity-field')), 'Da rimuovere');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
-      expect(find.text('Da rimuovere'), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.remove_circle_outline));
+      expect(find.byKey(const Key('addtrip-activity-title-0')), findsOneWidget);
+      // trova il ListTile che contiene il testo e clicca il pulsante di rimozione al suo interno
+      final removeBtn = find.byKey(const Key('addtrip-remove-activity-0'));
+      await tester.tap(removeBtn);
       await tester.pump();
-      expect(find.text('Da rimuovere'), findsNothing);
+      expect(find.byKey(const Key('addtrip-activity-title-0')), findsNothing);
     });
 
     testWidgets('tasto aggiungi icona inserisce l\'attività', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-        find.widgetWithText(TextField, "Aggiungi un'attività..."),
-        'Check-in hotel',
-      );
-      await tester.tap(find.byType(IconButton).last);
+      await tester.enterText(find.byKey(const Key('addtrip-activity-field')), 'Check-in hotel');
+      await tester.tap(find.byKey(const Key('addtrip-add-activity-btn')));
       await tester.pump();
-      expect(find.text('Check-in hotel'), findsOneWidget);
+      expect(find.byKey(const Key('addtrip-activity-title-0')), findsOneWidget);
     });
   });
 }

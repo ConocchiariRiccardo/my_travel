@@ -275,6 +275,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: TextButton(
+              key: const Key('addexpense-save-btn'),
               onPressed: (_isSaving || _isOcrLoading) ? null : _salvaSpesa,
               child: _isSaving
                   ? const SizedBox(
@@ -306,6 +307,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             GestureDetector(
               onTap: _mostraSceltaSorgente,
               child: Container(
+                key: const Key('addexpense-photo-area'),
                 height: 180,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -385,6 +387,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               const SizedBox(height: 12),
                               const Text(
                                 'Fotografa lo scontrino',
+                                key: Key('addexpense-photo-title'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -411,6 +414,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             // --- Form dati spesa ---
             _buildCard(children: [
               TextFormField(
+                key: const Key('addexpense-description'),
                 controller: _descrizioneController,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
@@ -424,6 +428,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
               const Divider(height: 1),
               TextFormField(
+                key: const Key('addexpense-amount'),
                 controller: _importoController,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -465,6 +470,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       children: _categorie.map((cat) {
                         final isSelected = _categoriaSelezionata == cat;
                         return ChoiceChip(
+                          key: Key('addexpense-category-${cat.toLowerCase()}'),
                           label: Text(cat),
                           selected: isSelected,
                           onSelected: (_) =>
@@ -491,6 +497,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             // --- Data ---
             _buildCard(children: [
               ListTile(
+                key: const Key('addexpense-date'),
                 leading: const Icon(
                   Icons.calendar_today_outlined,
                   color: Color(0xFF1E3A8A),

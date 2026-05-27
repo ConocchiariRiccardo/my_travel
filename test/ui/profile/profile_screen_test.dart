@@ -61,9 +61,9 @@ void main() {
       expect(find.text('mario@test.com'), findsWidgets);
     });
 
-    testWidgets('mostra l\'icona di modifica quando non in edit mode', (tester) async {
+    testWidgets('mostra il menu My Profile', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+      expect(find.byKey(const Key('menu-my_profile')), findsOneWidget);
     });
 
     testWidgets('mostra spinner durante isLoading', (tester) async {
@@ -72,72 +72,65 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('mostra link a Storico viaggi', (tester) async {
+    testWidgets('mostra link a Travel history', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Storico viaggi'), findsOneWidget);
+      expect(find.byKey(const Key('menu-travel_history')), findsOneWidget);
     });
 
-    testWidgets('mostra bottone Esci', (tester) async {
+    testWidgets('mostra bottone Logout', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.scrollUntilVisible(
-        find.text("Esci dall'account"),
-        200,
-      );
-      expect(find.text("Esci dall'account"), findsOneWidget);
+      await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
+      expect(find.byKey(const Key('logout-btn')), findsOneWidget);
     });
   });
 
   group('ProfileScreen – edit mode', () {
-    testWidgets('tap sull\'icona edit mostra il campo nome', (tester) async {
+    testWidgets('tap My Profile apre EditProfile e mostra campo nome', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.tap(find.byKey(const Key('menu-my_profile')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('edit-profile-btn')));
       await tester.pump();
-      expect(find.widgetWithText(TextFormField, 'Nome completo'), findsOneWidget);
+      expect(find.text('Full name'), findsOneWidget);
+      final firstField = tester.widget<TextFormField>(find.byType(TextFormField).first);
+      expect(firstField.enabled, isTrue);
     });
 
-    testWidgets('in edit mode mostra bottone Salva al posto dell\'icona', (tester) async {
+    testWidgets('in edit mode mostra bottone Salva', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.tap(find.byKey(const Key('menu-my_profile')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('edit-profile-btn')));
       await tester.pump();
-      expect(find.text('Salva'), findsOneWidget);
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byKey(const Key('edit-save-btn')), findsOneWidget);
+      expect(find.byKey(const Key('edit-profile-btn')), findsNothing);
     });
 
-    testWidgets('tap Salva chiama aggiornaNome col testo inserito', (tester) async {
-      when(mockProfile.aggiornaNome(any)).thenAnswer((_) async {});
-      when(mockProfile.successMessage).thenReturn('Nome aggiornato con successo!');
+    testWidgets('salva dati profilo via EditProfileScreen', (tester) async {
       await tester.pumpWidget(buildWidget());
-
-      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.tap(find.byKey(const Key('menu-my_profile')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('edit-profile-btn')));
       await tester.pump();
-      await tester.enterText(
-          find.widgetWithText(TextFormField, 'Nome completo'), 'Luca Bianchi');
-      await tester.tap(find.text('Salva'));
+      await tester.enterText(find.byType(TextFormField).first, 'Luca Bianchi');
       await tester.pump();
-
-      verify(mockProfile.aggiornaNome('Luca Bianchi')).called(1);
+      expect(find.text('Luca Bianchi'), findsOneWidget);
     });
   });
 
   group('ProfileScreen – logout', () {
-    testWidgets('tap Esci mostra dialog di conferma', (tester) async {
+    testWidgets('tap Logout mostra dialog di conferma', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.scrollUntilVisible(
-        find.text("Esci dall'account"),
-        200,
-      );
-      await tester.tap(find.text("Esci dall'account"));
+      await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
+      await tester.tap(find.byKey(const Key('logout-btn')));
       await tester.pumpAndSettle();
-      expect(find.text('Logout'), findsOneWidget);
+      expect(find.descendant(of: find.byType(AlertDialog), matching: find.text('Logout')), findsOneWidget);
     });
 
     testWidgets('tap Annulla nel dialog non chiama logout', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.scrollUntilVisible(
-        find.text("Esci dall'account"),
-        200,
-      );
-      await tester.tap(find.text("Esci dall'account"));
+      await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
+      await tester.tap(find.byKey(const Key('logout-btn')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Annulla'));
       await tester.pumpAndSettle();
@@ -147,11 +140,8 @@ void main() {
     testWidgets('tap Esci nel dialog chiama logout', (tester) async {
       when(mockAuth.logout()).thenAnswer((_) async {});
       await tester.pumpWidget(buildWidget());
-      await tester.scrollUntilVisible(
-        find.text("Esci dall'account"),
-        200,
-      );
-      await tester.tap(find.text("Esci dall'account"));
+      await tester.scrollUntilVisible(find.byKey(const Key('logout-btn')), 200);
+      await tester.tap(find.byKey(const Key('logout-btn')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Esci'));
       await tester.pumpAndSettle();

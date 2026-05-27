@@ -33,58 +33,60 @@ void main() {
   group('RegisterScreen – rendering', () {
     testWidgets('mostra tre campi TextFormField', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(TextFormField), findsNWidgets(3));
+      expect(find.byKey(const Key('register-email-field')), findsOneWidget);
+      expect(find.byKey(const Key('register-password-field')), findsOneWidget);
+      expect(find.byKey(const Key('register-confirm-password-field')), findsOneWidget);
     });
 
     testWidgets('mostra il bottone Crea Account', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Crea Account'), findsOneWidget);
+      expect(find.byKey(const Key('register-btn')), findsOneWidget);
     });
 
     testWidgets('mostra il link Accedi', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Accedi'), findsOneWidget);
+      expect(find.byKey(const Key('register-login-link')), findsOneWidget);
     });
   });
 
   group('RegisterScreen – validazione form', () {
     testWidgets('mostra errore se email vuota', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Crea Account'));
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       expect(find.text('Inserisci la tua email'), findsOneWidget);
     });
 
     testWidgets('mostra errore se email senza @', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(find.byType(TextFormField).at(0), 'emailsenza');
-      await tester.tap(find.text('Crea Account'));
+      await tester.enterText(find.byKey(const Key('register-email-field')), 'emailsenza');
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       expect(find.text('Formato email non valido'), findsOneWidget);
     });
 
     testWidgets('mostra errore se password troppo corta', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(find.byType(TextFormField).at(0), 'ok@ok.com');
-      await tester.enterText(find.byType(TextFormField).at(1), '123');
-      await tester.tap(find.text('Crea Account'));
+      await tester.enterText(find.byKey(const Key('register-email-field')), 'ok@ok.com');
+      await tester.enterText(find.byKey(const Key('register-password-field')), '123');
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       expect(find.text('La password deve avere almeno 6 caratteri'), findsOneWidget);
     });
 
     testWidgets('mostra errore se le password non coincidono', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(find.byType(TextFormField).at(0), 'ok@ok.com');
-      await tester.enterText(find.byType(TextFormField).at(1), 'pass123');
-      await tester.enterText(find.byType(TextFormField).at(2), 'diversa');
-      await tester.tap(find.text('Crea Account'));
+      await tester.enterText(find.byKey(const Key('register-email-field')), 'ok@ok.com');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'pass123');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'diversa');
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       expect(find.text('Le password non coincidono'), findsOneWidget);
     });
 
     testWidgets('non chiama register se form non valido', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Crea Account'));
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       verifyNever(mockAuth.register(any, any));
     });
@@ -94,13 +96,13 @@ void main() {
     testWidgets('mostra spinner durante isLoading', (tester) async {
       when(mockAuth.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('register-loading')), findsOneWidget);
     });
 
     testWidgets('bottone disabilitato durante isLoading', (tester) async {
       when(mockAuth.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-      final btn = tester.widget<FilledButton>(find.byType(FilledButton));
+      final btn = tester.widget<FilledButton>(find.byKey(const Key('register-btn')));
       expect(btn.onPressed, isNull);
     });
   });
@@ -110,10 +112,10 @@ void main() {
       when(mockAuth.register(any, any)).thenAnswer((_) async => true);
       await tester.pumpWidget(buildWidget());
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'nuovo@user.com');
-      await tester.enterText(find.byType(TextFormField).at(1), 'password1');
-      await tester.enterText(find.byType(TextFormField).at(2), 'password1');
-      await tester.tap(find.text('Crea Account'));
+      await tester.enterText(find.byKey(const Key('register-email-field')), 'nuovo@user.com');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'password1');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'password1');
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
 
       verify(mockAuth.register('nuovo@user.com', 'password1')).called(1);
@@ -123,10 +125,10 @@ void main() {
       when(mockAuth.register(any, any)).thenAnswer((_) async => true);
       await tester.pumpWidget(buildWidget());
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'n@n.com');
-      await tester.enterText(find.byType(TextFormField).at(1), 'validpass');
-      await tester.enterText(find.byType(TextFormField).at(2), 'validpass');
-      await tester.tap(find.text('Crea Account'));
+      await tester.enterText(find.byKey(const Key('register-email-field')), 'n@n.com');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'validpass');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'validpass');
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -138,10 +140,10 @@ void main() {
       when(mockAuth.errorMessage).thenReturn('Email già in uso. Prova ad accedere.');
       await tester.pumpWidget(buildWidget());
 
-      await tester.enterText(find.byType(TextFormField).at(0), 'gia@usata.com');
-      await tester.enterText(find.byType(TextFormField).at(1), 'validpass');
-      await tester.enterText(find.byType(TextFormField).at(2), 'validpass');
-      await tester.tap(find.text('Crea Account'));
+      await tester.enterText(find.byKey(const Key('register-email-field')), 'gia@usata.com');
+      await tester.enterText(find.byKey(const Key('register-password-field')), 'validpass');
+      await tester.enterText(find.byKey(const Key('register-confirm-password-field')), 'validpass');
+      await tester.tap(find.byKey(const Key('register-btn')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -150,16 +152,16 @@ void main() {
 
     testWidgets('tap Accedi naviga verso /login', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Accedi'));
+      await tester.tap(find.byKey(const Key('register-login-link')));
       await tester.pumpAndSettle();
       expect(find.text('Login'), findsOneWidget);
     });
 
     testWidgets('toggle visibilità password funziona', (tester) async {
       await tester.pumpWidget(buildWidget());
-      // Il primo IconButton visibility è relativo alla password
-      final icons = find.byIcon(Icons.visibility_outlined);
-      await tester.tap(icons.first);
+      final vis1 = find.byKey(const Key('register-password-visibility-btn'));
+      final vis2 = find.byKey(const Key('register-confirm-password-visibility-btn'));
+      await tester.tap(vis1);
       await tester.pump();
       expect(find.byIcon(Icons.visibility_off_outlined), findsWidgets);
     });

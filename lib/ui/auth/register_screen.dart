@@ -100,6 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // --- Campo Email ---
                 TextFormField(
+                  key: const Key('register-email-field'),
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -125,6 +126,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // --- Campo Password ---
                 TextFormField(
+                  key: const Key('register-password-field'),
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
                   textInputAction: TextInputAction.next,
@@ -135,6 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
                     suffixIcon: IconButton(
+                      key: const Key('register-password-visibility-btn'),
                       icon: Icon(
                         _isPasswordVisible
                             ? Icons.visibility_off_outlined
@@ -160,6 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // --- Conferma Password ---
                 TextFormField(
+                  key: const Key('register-confirm-password-field'),
                   controller: _confirmPasswordController,
                   obscureText: !_isConfirmPasswordVisible,
                   textInputAction: TextInputAction.done,
@@ -171,6 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
                     suffixIcon: IconButton(
+                      key: const Key('register-confirm-password-visibility-btn'),
                       icon: Icon(
                         _isConfirmPasswordVisible
                             ? Icons.visibility_off_outlined
@@ -197,6 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // --- Bottone Registrati ---
                 FilledButton(
+                  key: const Key('register-btn'),
                   onPressed: isLoading ? null : _handleRegister,
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF1E3A8A),
@@ -206,10 +212,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   child: isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
+                            key: const Key('register-loading'),
                             color: Colors.white,
                             strokeWidth: 2,
                           ),
@@ -231,6 +238,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                     GestureDetector(
+                      key: const Key('register-login-link'),
                       onTap: () => Navigator.pushNamedAndRemoveUntil(
                           context, '/login', (route) => false),
                       child: const Text(

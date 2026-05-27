@@ -190,6 +190,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: TextButton(
+              key: const Key('addtrip-save-btn'),
               onPressed: _isLoading ? null : _salvaViaggio,
               child: _isLoading
                   ? const SizedBox(
@@ -201,7 +202,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                       ),
                     )
                   : const Text(
-                      'Salva',
+                        'Salva',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -224,6 +225,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
             _buildCard(
               children: [
                 TextFormField(
+                  key: const Key('addtrip-name-field'),
                   controller: _nomeController,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
@@ -238,6 +240,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                 ),
                 const Divider(height: 1),
                 TextFormField(
+                  key: const Key('addtrip-destination-field'),
                   controller: _destinazioneController,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
@@ -261,18 +264,24 @@ class _AddTripScreenState extends State<AddTripScreen> {
 
             _buildCard(
               children: [
-                _buildDateRow(
-                  label: 'Data inizio',
-                  icon: Icons.flight_takeoff_rounded,
-                  data: _dataInizio,
-                  onTap: () => _selezionaData(isInizio: true),
+                KeyedSubtree(
+                  key: const Key('addtrip-date-inizio'),
+                  child: _buildDateRow(
+                    label: 'Data inizio',
+                    icon: Icons.flight_takeoff_rounded,
+                    data: _dataInizio,
+                    onTap: () => _selezionaData(isInizio: true),
+                  ),
                 ),
                 const Divider(height: 1),
-                _buildDateRow(
-                  label: 'Data fine',
-                  icon: Icons.flight_land_rounded,
-                  data: _dataFine,
-                  onTap: () => _selezionaData(isInizio: false),
+                KeyedSubtree(
+                  key: const Key('addtrip-date-fine'),
+                  child: _buildDateRow(
+                    label: 'Data fine',
+                    icon: Icons.flight_land_rounded,
+                    data: _dataFine,
+                    onTap: () => _selezionaData(isInizio: false),
+                  ),
                 ),
               ],
             ),
@@ -288,6 +297,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    key: const Key('addtrip-activity-field'),
                     controller: _attivitaController,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
@@ -308,6 +318,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
+                  key: const Key('addtrip-add-activity-btn'),
                   onPressed: _aggiungiAttivita,
                   icon: const Icon(Icons.add),
                   style: IconButton.styleFrom(
@@ -322,25 +333,29 @@ class _AddTripScreenState extends State<AddTripScreen> {
             if (_attivita.isNotEmpty) ...[
               const SizedBox(height: 12),
               _buildCard(
-                children: _attivita
-                    .map(
-                      (a) => ListTile(
-                        leading: const Icon(
-                          Icons.radio_button_unchecked,
-                          color: Color(0xFF1E3A8A),
-                        ),
-                        title: Text(a.nome),
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle_outline,
-                            color: Colors.red,
-                          ),
-                          onPressed: () => _rimuoviAttivita(a.id),
-                        ),
-                        dense: true,
+                children: List.generate(
+                  _attivita.length,
+                  (i) {
+                    final a = _attivita[i];
+                    return ListTile(
+                      key: Key('addtrip-activity-$i'),
+                      leading: const Icon(
+                        Icons.radio_button_unchecked,
+                        color: Color(0xFF1E3A8A),
                       ),
-                    )
-                    .toList(),
+                      title: Text(a.nome, key: Key('addtrip-activity-title-$i')),
+                      trailing: IconButton(
+                        key: Key('addtrip-remove-activity-$i'),
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _rimuoviAttivita(a.id),
+                      ),
+                      dense: true,
+                    );
+                  },
+                ),
               ),
             ],
 

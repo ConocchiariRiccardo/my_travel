@@ -216,6 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     bool isLast = false,
   }) {
     return ListTile(
+      key: Key('menu-${title.replaceAll(' ', '_').toLowerCase()}'),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
       leading: Icon(
@@ -256,6 +257,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       child: ListTile(
+        key: const Key('logout-btn'),
         onTap: _confermaLogout,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
         leading: const Icon(

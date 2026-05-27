@@ -50,18 +50,21 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: const Color(0xFF1E3A8A),
             actions: [
               IconButton(
+                key: const Key('workspace-btn'),
                 icon:
                     const Icon(Icons.location_on_outlined, color: Colors.white),
                 tooltip: 'Workspace Finder',
                 onPressed: () => Navigator.pushNamed(context, '/workspace'),
               ),
               IconButton(
+                key: const Key('calendar-btn'),
                 icon: const Icon(Icons.calendar_month_outlined,
                     color: Colors.white),
                 tooltip: 'Calendario',
                 onPressed: () => Navigator.pushNamed(context, '/calendar'),
               ),
               IconButton(
+                key: const Key('profile-btn'),
                 icon: const Icon(Icons.person_outline, color: Colors.white),
                 tooltip: 'Profilo',
                 onPressed: () => Navigator.pushNamed(context, '/profile'),
@@ -71,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
               titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
               title: const Text(
                 'I miei viaggi',
+                key: Key('home-title'),
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -94,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: TextField(
+                key: const Key('home-search-field'),
                 controller: _searchController,
                 onChanged: (testo) =>
                     context.read<HomeViewModel>().cercaViaggio(testo),
@@ -102,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
+                          key: const Key('home-search-clear-btn'),
                           icon: const Icon(Icons.clear),
                           onPressed: () {
                             _searchController.clear();
@@ -179,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // --- FAB: aggiungi viaggio ---
       floatingActionButton: FloatingActionButton.extended(
+        key: const Key('new-trip-btn'),
         onPressed: () => Navigator.pushNamed(context, '/add-trip'),
         backgroundColor: const Color(0xFF1E3A8A),
         icon: const Icon(Icons.add, color: Colors.white),
@@ -198,6 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     final isSelected = vm.filtroCorrente == valore;
     return FilterChip(
+        key: Key('filter-$valore'),
       label: Text(etichetta),
       selected: isSelected,
       onSelected: (_) => context.read<HomeViewModel>().impostaFiltro(valore),
@@ -243,6 +251,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Nessun viaggio in programma',
+            key: const Key('home-empty-title'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,

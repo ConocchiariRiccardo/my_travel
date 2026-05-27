@@ -90,6 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               const Text(
                 'MyTravel',
+                key: Key('login-title'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -108,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Campo email
               TextField(
+                key: const Key('email-field'),
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
@@ -123,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Campo password
               TextField(
+                key: const Key('password-field'),
                 controller: _passwordController,
                 obscureText: !_passwordVisibile,
                 decoration: InputDecoration(
@@ -132,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
                   suffixIcon: IconButton(
+                    key: const Key('password-visibility-btn'),
                     icon: Icon(
                       _passwordVisibile
                           ? Icons.visibility_off_outlined
@@ -152,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
+                  key: const Key('login-btn'),
                   onPressed: isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E3A8A),
@@ -161,10 +166,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
+                            key: const Key('login-loading'),
                             color: Colors.white,
                             strokeWidth: 2,
                           ),
@@ -197,6 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 height: 52,
                 child: OutlinedButton.icon(
+                  key: const Key('google-btn'),
                   onPressed: isLoading ? null : _loginGoogle,
                   icon: const Icon(
                     Icons.g_mobiledata_rounded,
@@ -225,6 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text('Non hai un account? ',
                       style: TextStyle(color: Colors.grey)),
                   GestureDetector(
+                    key: const Key('register-link'),
                     onTap: () =>
                         Navigator.pushNamed(context, '/register'),
                     child: const Text(

@@ -641,6 +641,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         actions: [
           if (!isEditing)
             IconButton(
+              key: const Key('edit-profile-btn'),
               onPressed: () {
                 setState(() {
                   isEditing = true;
@@ -651,6 +652,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             )
           else ...[
             TextButton(
+              key: const Key('edit-cancel-btn'),
               onPressed: () => annullaModifiche(vm),
               child: const Text(
                 'Annulla',
@@ -673,6 +675,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   )
                 : TextButton(
+                    key: const Key('edit-save-btn'),
                     onPressed: () => salva(vm),
                     child: const Text(
                       'Salva',

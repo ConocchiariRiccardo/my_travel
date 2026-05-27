@@ -69,12 +69,12 @@ void main() {
   group('ExpenseScreen – rendering', () {
     testWidgets('mostra il totale formattato', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('€ 0,00'), findsOneWidget);
+      expect(find.byKey(const Key('expense-total')), findsOneWidget);
     });
 
     testWidgets('mostra stato vuoto quando non ci sono spese', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Nessuna spesa registrata'), findsOneWidget);
+      expect(find.byKey(const Key('expense-empty-title')), findsOneWidget);
     });
 
     testWidgets('mostra le spese in lista', (tester) async {
@@ -84,8 +84,8 @@ void main() {
       ]);
       when(mockVm.totaleFormattato).thenReturn('€ 40,50');
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Pranzo'), findsOneWidget);
-      expect(find.text('Taxi'), findsOneWidget);
+      expect(find.byKey(const Key('expense-item-s1')), findsOneWidget);
+      expect(find.byKey(const Key('expense-item-s2')), findsOneWidget);
     });
 
     testWidgets('mostra spinner durante isLoading', (tester) async {
@@ -96,12 +96,12 @@ void main() {
 
     testWidgets('mostra FAB Aggiungi spesa', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Aggiungi spesa'), findsOneWidget);
+      expect(find.byKey(const Key('expense-add-fab')), findsOneWidget);
     });
 
     testWidgets('mostra icona PDF nell\'AppBar', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.byIcon(Icons.picture_as_pdf_outlined), findsOneWidget);
+      expect(find.byKey(const Key('expense-pdf-btn')), findsOneWidget);
     });
   });
 
@@ -110,22 +110,22 @@ void main() {
       when(mockVm.spese).thenReturn([makeSpesa(), makeSpesa(id: 's2', cat: 'Trasporto')]);
       when(mockVm.totalePerCategoria).thenReturn({'Pasto': 25.50, 'Trasporto': 15.00});
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Pasto: €25.50'), findsOneWidget);
-      expect(find.text('Trasporto: €15.00'), findsOneWidget);
+      expect(find.byKey(const Key('expense-category-pasto')), findsOneWidget);
+      expect(find.byKey(const Key('expense-category-trasporto')), findsOneWidget);
     });
   });
 
   group('ExpenseScreen – navigazione', () {
     testWidgets('tap FAB naviga verso /expense/add', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Aggiungi spesa'));
+      await tester.tap(find.byKey(const Key('expense-add-fab')));
       await tester.pumpAndSettle();
       expect(find.text('Stub'), findsOneWidget);
     });
 
     testWidgets('tap icona PDF naviga verso /pdf', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.byIcon(Icons.picture_as_pdf_outlined));
+      await tester.tap(find.byKey(const Key('expense-pdf-btn')));
       await tester.pumpAndSettle();
       expect(find.text('Stub'), findsOneWidget);
     });

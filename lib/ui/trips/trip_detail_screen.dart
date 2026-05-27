@@ -139,18 +139,20 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   Future<void> _confermaCompletamento() async {
     final conferma = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Concludi viaggio'),
+          builder: (ctx) => AlertDialog(
+          title: const Text('Concludi viaggio', key: Key('conclude-dialog-title')),
         content: const Text(
           'Vuoi spostare questo viaggio nello Storico? '
           'Non sarà più modificabile.',
         ),
         actions: [
           TextButton(
+            key: const Key('conclude-cancel'),
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Annulla'),
           ),
           FilledButton(
+            key: const Key('conclude-confirm'),
             onPressed: () => Navigator.of(ctx).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF1E3A8A),
@@ -192,8 +194,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       listenable: _viewModel,
       builder: (context, _) {
         if (_viewModel.isLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator(key: Key('trip-loading'))),
           );
         }
 
@@ -225,6 +227,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ),
                 actions: [
                   IconButton(
+                    key: const Key('complete-trip-btn'),
                     icon: const Icon(Icons.check_circle_outline,
                         color: Colors.white),
                     tooltip: 'Concludi viaggio',
@@ -239,6 +242,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     children: [
                       Text(
                         viaggio.nome,
+                        key: const Key('trip-title'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -252,6 +256,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                           const SizedBox(width: 3),
                           Text(
                             viaggio.destinazione,
+                            key: const Key('trip-destination'),
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
@@ -331,6 +336,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         children: [
                           _buildSectionTitle('Attività'),
                           TextButton.icon(
+                            key: const Key('trip-add-activity-btn'),
                             onPressed: _mostraDialogAggiungiAttivita,
                             icon: const Icon(Icons.add, size: 18),
                             label: const Text('Aggiungi'),
@@ -350,6 +356,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
+                                  key: const Key('trip-progress'),
                                   value: percentuale,
                                   backgroundColor: Colors.grey.shade200,
                                   color: const Color(0xFF1E3A8A),
@@ -542,6 +549,7 @@ class _InfoCard extends StatelessWidget {
             ),
             child: Text(
               countdownTesto,
+              key: Key('trip-countdown'),
               style: TextStyle(
                 color: countdownColore,
                 fontWeight: FontWeight.bold,
@@ -571,6 +579,7 @@ class _QuickLinkButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      key: Key('quicklink-$label'),
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
@@ -619,6 +628,7 @@ class _AttivitaTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      key: Key('activity-${attivita.id}'),
       leading: GestureDetector(
         key: Key('activity-toggle-${attivita.id}'),
         onTap: onToggle,
@@ -645,6 +655,7 @@ class _AttivitaTile extends StatelessWidget {
       ),
       title: Text(
         attivita.nome,
+        key: Key('activity-title-${attivita.id}'),
         style: TextStyle(
           decoration: attivita.isCompletata
               ? TextDecoration.lineThrough
@@ -682,6 +693,7 @@ class _EmptyAttivita extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Nessuna attività pianificata',
+            key: Key('empty-activities-title'),
             style: TextStyle(color: Colors.grey.shade500),
           ),
           const SizedBox(height: 12),

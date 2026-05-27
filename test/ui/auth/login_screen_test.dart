@@ -35,30 +35,29 @@ void main() {
   group('LoginScreen – rendering', () {
     testWidgets('mostra i campi email e password', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.byType(TextField), findsNWidgets(2));
-      expect(find.text('Email'), findsOneWidget);
-      expect(find.text('Password'), findsOneWidget);
+      expect(find.byKey(const Key('email-field')), findsOneWidget);
+      expect(find.byKey(const Key('password-field')), findsOneWidget);
     });
 
     testWidgets('mostra il titolo MyTravel', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('MyTravel'), findsOneWidget);
+      expect(find.byKey(const Key('login-title')), findsOneWidget);
     });
 
     testWidgets('mostra bottone Accedi abilitato', (tester) async {
       await tester.pumpWidget(buildWidget());
-      final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      final btn = tester.widget<ElevatedButton>(find.byKey(const Key('login-btn')));
       expect(btn.onPressed, isNotNull);
     });
 
     testWidgets('mostra bottone Google Sign-In', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Accedi con Google'), findsOneWidget);
+      expect(find.byKey(const Key('google-btn')), findsOneWidget);
     });
 
     testWidgets('mostra link Registrati', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Registrati'), findsOneWidget);
+      expect(find.byKey(const Key('register-link')), findsOneWidget);
     });
   });
 
@@ -66,9 +65,8 @@ void main() {
     testWidgets('mostra spinner e disabilita bottone durante isLoading', (tester) async {
       when(mockAuth.isLoading).thenReturn(true);
       await tester.pumpWidget(buildWidget());
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      expect(find.byKey(const Key('login-loading')), findsOneWidget);
+      final btn = tester.widget<ElevatedButton>(find.byKey(const Key('login-btn')));
       expect(btn.onPressed, isNull);
     });
 
@@ -83,27 +81,37 @@ void main() {
   group('LoginScreen – toggle password', () {
     testWidgets('password oscurata di default', (tester) async {
       await tester.pumpWidget(buildWidget());
-      final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
-      // Il secondo TextField è la password
-      expect(fields[1].obscureText, isTrue);
+      await tester.pumpAndSettle();
+      final email = find.byKey(const Key('email-field'));
+      final password = find.byKey(const Key('password-field'));
+      expect(email, findsOneWidget);
+      expect(password, findsOneWidget);
+      final pwWidget = tester.widget<TextField>(password);
+      expect(pwWidget.obscureText, isTrue);
     });
 
     testWidgets('tap sull/icona mostra la password', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.byIcon(Icons.visibility_outlined));
+      await tester.pumpAndSettle();
+      final visibilityBtn = find.byKey(const Key('password-visibility-btn'));
+      await tester.ensureVisible(visibilityBtn);
+      await tester.tap(visibilityBtn, warnIfMissed: false);
       await tester.pump();
-      final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
-      expect(fields[1].obscureText, isFalse);
+      final pwWidget = tester.widget<TextField>(find.byKey(const Key('password-field')));
+      expect(pwWidget.obscureText, isFalse);
     });
 
     testWidgets('secondo tap nasconde di nuovo la password', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.byIcon(Icons.visibility_outlined));
+      await tester.pumpAndSettle();
+      final visibilityBtn = find.byKey(const Key('password-visibility-btn'));
+      await tester.ensureVisible(visibilityBtn);
+      await tester.tap(visibilityBtn, warnIfMissed: false);
       await tester.pump();
-      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+      await tester.tap(visibilityBtn, warnIfMissed: false);
       await tester.pump();
-      final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
-      expect(fields[1].obscureText, isTrue);
+      final pwWidget = tester.widget<TextField>(find.byKey(const Key('password-field')));
+      expect(pwWidget.obscureText, isTrue);
     });
   });
 
@@ -111,10 +119,11 @@ void main() {
     testWidgets('chiama login con le credenziali corrette', (tester) async {
       when(mockAuth.login(any, any)).thenAnswer((_) async => true);
       await tester.pumpWidget(buildWidget());
-
-      await tester.enterText(find.byType(TextField).at(0), 'test@mail.com');
-      await tester.enterText(find.byType(TextField).at(1), 'pass123');
-      await tester.tap(find.text('Accedi'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('email-field')), 'test@mail.com');
+      await tester.enterText(find.byKey(const Key('password-field')), 'pass123');
+      await tester.ensureVisible(find.byKey(const Key('login-btn')));
+      await tester.tap(find.byKey(const Key('login-btn')), warnIfMissed: false);
       await tester.pump();
 
       verify(mockAuth.login('test@mail.com', 'pass123')).called(1);
@@ -124,10 +133,11 @@ void main() {
       when(mockAuth.login(any, any)).thenAnswer((_) async => false);
       when(mockAuth.errorMessage).thenReturn('Password errata. Riprova.');
       await tester.pumpWidget(buildWidget());
-
-      await tester.enterText(find.byType(TextField).at(0), 'x@x.com');
-      await tester.enterText(find.byType(TextField).at(1), 'wrong');
-      await tester.tap(find.text('Accedi'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('email-field')), 'x@x.com');
+      await tester.enterText(find.byKey(const Key('password-field')), 'wrong');
+      await tester.ensureVisible(find.byKey(const Key('login-btn')));
+      await tester.tap(find.byKey(const Key('login-btn')), warnIfMissed: false);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -137,10 +147,11 @@ void main() {
     testWidgets('navigazione verso /home dopo login riuscito', (tester) async {
       when(mockAuth.login(any, any)).thenAnswer((_) async => true);
       await tester.pumpWidget(buildWidget());
-
-      await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
-      await tester.enterText(find.byType(TextField).at(1), 'abc123');
-      await tester.tap(find.text('Accedi'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('email-field')), 'a@b.com');
+      await tester.enterText(find.byKey(const Key('password-field')), 'abc123');
+      await tester.ensureVisible(find.byKey(const Key('login-btn')));
+      await tester.tap(find.byKey(const Key('login-btn')), warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsOneWidget);
@@ -149,17 +160,22 @@ void main() {
     testWidgets('chiama loginWithGoogle al tap', (tester) async {
       when(mockAuth.loginWithGoogle()).thenAnswer((_) async => true);
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Accedi con Google'));
+      await tester.pumpAndSettle();
+      final googleBtn = find.byKey(const Key('google-btn'));
+      await tester.ensureVisible(googleBtn);
+      await tester.tap(googleBtn, warnIfMissed: false);
       await tester.pump();
       verify(mockAuth.loginWithGoogle()).called(1);
     });
 
     testWidgets('tap Registrati naviga verso /register', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.ensureVisible(find.text('Registrati'));
-      await tester.tap(find.text('Registrati'));
+      final reg = find.byKey(const Key('register-link'));
+      await tester.ensureVisible(reg);
+      await tester.tap(reg);
       await tester.pumpAndSettle();
       expect(find.text('Register'), findsOneWidget);
     });
   });
 }
+

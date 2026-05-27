@@ -39,57 +39,54 @@ void main() {
   group('AddExpenseScreen – rendering', () {
     testWidgets('mostra area placeholder fotocamera', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Fotografa lo scontrino'), findsOneWidget);
+      expect(find.byKey(const Key('addexpense-photo-title')), findsOneWidget);
     });
 
     testWidgets('mostra campi descrizione e importo', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.widgetWithText(TextFormField, 'Descrizione'), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, 'Importo (€)'), findsOneWidget);
+      expect(find.byKey(const Key('addexpense-description')), findsOneWidget);
+      expect(find.byKey(const Key('addexpense-amount')), findsOneWidget);
     });
 
     testWidgets('mostra i 5 ChoiceChip di categoria', (tester) async {
       await tester.pumpWidget(buildWidget());
       for (final cat in ['Pasto', 'Trasporto', 'Alloggio', 'Carburante', 'Altro']) {
-        expect(find.text(cat), findsWidgets);
+        expect(find.byKey(Key('addexpense-category-${cat.toLowerCase()}')), findsOneWidget);
       }
     });
 
     testWidgets('mostra il bottone Salva nell\'AppBar', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Salva'), findsOneWidget);
+      expect(find.byKey(const Key('addexpense-save-btn')), findsOneWidget);
     });
 
     testWidgets('mostra il data picker nella sezione data', (tester) async {
       await tester.pumpWidget(buildWidget());
-      expect(find.text('Data spesa'), findsOneWidget);
+      expect(find.byKey(const Key('addexpense-date')), findsOneWidget);
     });
   });
 
   group('AddExpenseScreen – validazione', () {
     testWidgets('mostra errore se descrizione vuota', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.text('Salva'));
+      await tester.tap(find.byKey(const Key('addexpense-save-btn')));
       await tester.pump();
       expect(find.text('Campo obbligatorio'), findsOneWidget);
     });
 
     testWidgets('mostra errore se importo vuoto', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-          find.widgetWithText(TextFormField, 'Descrizione'), 'Pranzo');
-      await tester.tap(find.text('Salva'));
+      await tester.enterText(find.byKey(const Key('addexpense-description')), 'Pranzo');
+      await tester.tap(find.byKey(const Key('addexpense-save-btn')));
       await tester.pump();
       expect(find.textContaining("importo"), findsOneWidget);
     });
 
     testWidgets('mostra errore se importo non è un numero valido', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.enterText(
-          find.widgetWithText(TextFormField, 'Descrizione'), 'Test');
-      await tester.enterText(
-          find.widgetWithText(TextFormField, 'Importo (€)'), 'abc');
-      await tester.tap(find.text('Salva'));
+      await tester.enterText(find.byKey(const Key('addexpense-description')), 'Test');
+      await tester.enterText(find.byKey(const Key('addexpense-amount')), 'abc');
+      await tester.tap(find.byKey(const Key('addexpense-save-btn')));
       await tester.pump();
       expect(find.text('Importo non valido'), findsOneWidget);
     });
@@ -98,19 +95,15 @@ void main() {
   group('AddExpenseScreen – selezione categoria', () {
     testWidgets('tap su un ChoiceChip lo seleziona', (tester) async {
       await tester.pumpWidget(buildWidget());
-      await tester.tap(find.widgetWithText(ChoiceChip, 'Trasporto'));
+      await tester.tap(find.byKey(const Key('addexpense-category-trasporto')));
       await tester.pump();
-      final chip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Trasporto'),
-      );
+      final chip = tester.widget<ChoiceChip>(find.byKey(const Key('addexpense-category-trasporto')));
       expect(chip.selected, isTrue);
     });
 
     testWidgets('"Altro" è selezionato di default', (tester) async {
       await tester.pumpWidget(buildWidget());
-      final chip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, 'Altro'),
-      );
+      final chip = tester.widget<ChoiceChip>(find.byKey(const Key('addexpense-category-altro')));
       expect(chip.selected, isTrue);
     });
   });
