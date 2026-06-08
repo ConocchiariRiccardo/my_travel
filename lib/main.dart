@@ -20,9 +20,7 @@ import 'ui/profile/profile_screen.dart';
 import 'ui/profile/subpages/history_screen.dart';
 import 'ui/profile/profile_view_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'ui/theme/theme_view_model.dart';
 import 'ui/profile/subpages/settings_screen.dart';
-import 'ui/theme/locale_view_model.dart';
 import 'ui/expenses/pdf_preview_screen.dart';
 
 Future<void> main() async {
@@ -57,30 +55,13 @@ class MyTravelApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
-        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
-        ChangeNotifierProvider(create: (_) => LocaleViewModel()),
       ],
       // Il Consumer monitora lo stato del login e decide cosa mostrare all'utente
-      child: Consumer3<AuthViewModel, ThemeViewModel, LocaleViewModel>(
-        builder: (context, authViewModel, themeViewModel, localeVm, child) {
+      child: Consumer<AuthViewModel>(
+        builder: (context, authViewModel, child) {
           return MaterialApp(
             title: 'MyTravel',
-            themeMode: themeViewModel.themeMode,
-            locale: localeVm.locale,
             debugShowCheckedModeBanner: false,
-            darkTheme: ThemeData(
-              //Tema scuro
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF1E3A8A),
-                brightness: Brightness.dark,
-              ),
-              useMaterial3: true,
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF1A1A2E),
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-            ),
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,

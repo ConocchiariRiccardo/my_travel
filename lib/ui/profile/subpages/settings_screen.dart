@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../../theme/theme_view_model.dart';
-import '../../theme/locale_view_model.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -370,72 +368,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ── LINGUA ────────────────────────────────────────────────────
-  Future<void> _cambiaLingua() async {
-    final localeVm = context.read<LocaleViewModel>();
-
-    await showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Seleziona lingua',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Text('🇮🇹', style: TextStyle(fontSize: 24)),
-              title: const Text('Italiano'),
-              trailing: localeVm.locale.languageCode == 'it'
-                  ? const Icon(Icons.check, color: primaryColor)
-                  : null,
-              onTap: () {
-                localeVm.setLocale(const Locale('it', 'IT'));
-                Navigator.pop(ctx);
-              },
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            ListTile(
-              leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
-              title: const Text('English'),
-              trailing: localeVm.locale.languageCode == 'en'
-                  ? const Icon(Icons.check, color: primaryColor)
-                  : null,
-              onTap: () {
-                localeVm.setLocale(const Locale('en', 'US'));
-                Navigator.pop(ctx);
-              },
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ── BUILD ─────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final themeVm = context.watch<ThemeViewModel>();
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -468,18 +403,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 28),
           ],
-          _buildSectionLabel('Preferenze'),
-          const SizedBox(height: 12),
-          _buildTile(
-            icon: Icons.language_outlined,
-            title: 'Lingua',
-            trailing: const Text(
-              '🇮🇹  Italiano',
-              style: TextStyle(fontSize: 13, color: Color(0xFF757575)),
-            ),
-            onTap: _cambiaLingua,
-          ),
-          _buildThemeTile(themeVm),
         ],
       ),
     );
@@ -517,28 +440,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         trailing: trailing ??
             const Icon(Icons.chevron_right, size: 20, color: Color(0xFF757575)),
         onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  Widget _buildThemeTile(ThemeViewModel themeVm) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: SwitchListTile(
-        secondary: Icon(
-          themeVm.isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-          color: Colors.black87,
-          size: 22,
-        ),
-        title: const Text('Tema scuro',
-            style: TextStyle(fontSize: 15, color: Colors.black87)),
-        value: themeVm.isDark,
-        activeColor: primaryColor,
-        onChanged: (_) => themeVm.toggle(),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
