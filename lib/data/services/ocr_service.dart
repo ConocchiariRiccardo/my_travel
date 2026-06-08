@@ -22,12 +22,16 @@ class OcrService {
     defaultValue: '',
   );
 
-  static const String _endpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models/'
-      'gemini-2.5-flash:generateContent?key=$_apiKey';
-
   Future<OcrResult> analizzaScontrino(File immagine) async {
-    // Legge i byte e li converte in base64 per il payload JSON
+    if (_apiKey.isEmpty) {
+      throw Exception('GEMINI_API_KEY non valorizzata');
+    }
+
+    final uri = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/'
+      'gemini-2.5-flash:generateContent?key=$_apiKey',
+    );
+
     final bytes = await immagine.readAsBytes();
     final base64Immagine = base64Encode(bytes);
 
@@ -35,14 +39,13 @@ class OcrService {
         ? 'image/png'
         : 'image/jpeg';
 
-    // Payload conforme alle specifiche REST di Gemini v2
     final payload = jsonEncode({
       'contents': [
         {
           'parts': [
             {
-              'text': '''Analizza questo scontrino/ricevuta e restituisci 
-SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
+              'text':
+                  '''Analizza questo scontrino/ricevuta e restituisci SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
 {
   "descrizione": "descrizione sintetica della spesa (es. Pranzo, Hotel, Taxi)",
   "importo": 12.50,
@@ -62,25 +65,19 @@ SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
     });
 
     final response = await http.post(
-      Uri.parse(_endpoint),
+      uri,
       headers: {'Content-Type': 'application/json'},
       body: payload,
     );
 
     if (response.statusCode != 200) {
-      // Proviamo a estrarre il messaggio di errore da Google
-      String messaggioErrore = 'HTTP ${response.statusCode}';
-      try {
-        final errJson = jsonDecode(response.body) as Map<String, dynamic>;
-        final errore = errJson['error'] as Map<String, dynamic>?;
-        messaggioErrore = errore?['message'] as String? ?? messaggioErrore;
-      } catch (_) {}
-      throw Exception('Errore API Gemini: $messaggioErrore');
+      throw Exception(
+        'Errore API Gemini (${response.statusCode}) - ${response.reasonPhrase ?? 'senza dettagli'} - ${response.body}',
+      );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
 
-    // Naviga la struttura di risposta REST di Gemini v2
     final candidates = decoded['candidates'] as List<dynamic>?;
     if (candidates == null || candidates.isEmpty) {
       throw Exception('Nessuna risposta generata dal modello AI.');
@@ -99,7 +96,6 @@ SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
 
     final datiEstratti = jsonDecode(testoJson) as Map<String, dynamic>;
 
-    // Parse della data
     DateTime? dataEstratta;
     final dataRaw = datiEstratti['data'];
     if (dataRaw != null && dataRaw.toString() != 'null') {
@@ -110,7 +106,6 @@ SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
       }
     }
 
-    // Parse dell'importo
     double? importoEstratto;
     final importoRaw = datiEstratti['importo'];
     if (importoRaw != null) {

@@ -27,6 +27,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   static const Color primaryColor = Color(0xFF1E3A8A);
   static const Color backgroundColor = Color(0xFFF5F7FA);
   static const Color errorColor = Color(0xFFF44336);
+  static const Color warningColor = Color(0xFFF59E0B);
   static const Color textPrimary = Colors.black87;
   static const Color textSecondary = Color(0xFF757575);
   static const Color borderColor = Color(0xFFE0E0E0);
@@ -74,66 +75,61 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       maxWidth: 800,
     );
 
+    if (!mounted) return;
     if (picked == null) return;
 
+    final file = File(picked.path);
+
     setState(() {
-      _immagineSelezionata = File(picked.path);
+      _immagineSelezionata = file;
       _isOcrLoading = true;
     });
 
     try {
-      final risultato =
-          await _ocrService.analizzaScontrino(_immagineSelezionata!);
+      final risultato = await _ocrService.analizzaScontrino(file);
+
+      if (!mounted) return;
 
       setState(() {
         _descrizioneController.text = risultato.descrizione;
+
         if (risultato.importo != null) {
           _importoController.text = risultato.importo!.toStringAsFixed(2);
         }
+
         if (_categorie.contains(risultato.categoria)) {
           _categoriaSelezionata = risultato.categoria;
         }
+
         if (risultato.data != null) {
           _dataSelezionata = risultato.data!;
         }
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dati estratti dallo scontrino. Verifica e salva.'),
-            backgroundColor: primaryColor,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dati estratti dallo scontrino. Verifica e salva.'),
+          backgroundColor: primaryColor,
+        ),
+      );
+    } catch (e, st) {
+      debugPrint('[AddExpenseScreen][OCR] $e');
+      debugPrint('[AddExpenseScreen][OCR][STACK] $st');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Impossibile analizzare lo scontrino. Controlla l’immagine e riprova.',
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        final erroreStringa = e.toString().toLowerCase();
-
-        final bool isQuotaError = erroreStringa.contains('quota') ||
-            erroreStringa.contains('rate') ||
-            erroreStringa.contains('limit');
-
-        final String messaggioUtente = isQuotaError
-            ? 'Limite richieste AI raggiunto. Riprova tra qualche minuto o inserisci i dati manualmente.'
-            : 'Estrazione automatica non riuscita. Inserisci i dati manualmente.';
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(messaggioUtente),
-            backgroundColor: const Color(0xFFF59E0B),
-            duration: const Duration(seconds: 5),
-            action: SnackBarAction(
-              label: 'OK',
-              textColor: Colors.white,
-              onPressed: () =>
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-            ),
-          ),
-        );
-      }
+          backgroundColor: warningColor,
+          duration: Duration(seconds: 4),
+        ),
+      );
     } finally {
-      if (mounted) setState(() => _isOcrLoading = false);
+      if (!mounted) return;
+      setState(() => _isOcrLoading = false);
     }
   }
 
@@ -246,19 +242,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       final userId = context.read<AuthViewModel>().currentUser!.uid;
       final spesaId = _uuid.v4();
 
-      final importo = double.tryParse(
-            _importoController.text.replaceAll(',', '.'),
-          ) ??
-          0.0;
+      final importo =
+          double.tryParse(_importoController.text.replaceAll(',', '.')) ?? 0.0;
 
       String? immagineUrl;
 
       if (_immagineSelezionata != null) {
         immagineUrl = await _spesaRepo.caricaScontrino(
-            userId: userId,
-            viaggioId: widget.viaggioId,
-            spesaId: spesaId,
-            immagine: _immagineSelezionata!);
+          userId: userId,
+          viaggioId: widget.viaggioId,
+          spesaId: spesaId,
+          immagine: _immagineSelezionata!,
+        );
       }
 
       final nuovaSpesa = Spesa(
@@ -278,18 +273,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Spesa salvata con scontrino allegato.'),
-          backgroundColor: Color(0xFF1E3A8A),
+          backgroundColor: primaryColor,
         ),
       );
 
       Navigator.pop(context);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[AddExpenseScreen][SAVE] $e');
+      debugPrint('[AddExpenseScreen][SAVE][STACK] $st');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Errore durante il salvataggio. Riprova.'),
-          backgroundColor: Color(0xFFF44336),
+          backgroundColor: errorColor,
         ),
       );
     } finally {
@@ -420,9 +418,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               ],
                             ),
                           )
-                        : Column(
+                        : const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(
                                 Icons.add_a_photo_outlined,
                                 size: 42,
@@ -431,7 +429,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               SizedBox(height: 12),
                               Text(
                                 'Fotografa lo scontrino',
-                                key: const Key('addexpense-photo-title'),
+                                key: Key('addexpense-photo-title'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
