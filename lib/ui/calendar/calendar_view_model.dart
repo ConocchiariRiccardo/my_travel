@@ -26,7 +26,7 @@ class CalendarViewModel extends ChangeNotifier {
         .toList();
   }
 
-  // Getter: restituisce la cache precalcolata, O(1).
+  // Getter: restituisce la cache precalcolata.
   Map<DateTime, List<Viaggio>> get eventiPerGiorno => _eventiCache;
 
   // Ricalcola la mappa una sola volta quando arrivano nuovi dati dallo stream.
@@ -68,7 +68,7 @@ class CalendarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Restituisce il colore assegnato a un viaggio (deterministico)
+  // Restituisce il colore assegnato a un viaggio
   Color coloreViaggio(Viaggio viaggio) {
     final colori = [
       const Color(0xFF1E3A8A),

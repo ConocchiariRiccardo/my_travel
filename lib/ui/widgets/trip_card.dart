@@ -18,7 +18,7 @@ class TripCard extends StatelessWidget {
   static final DateFormat _dateFormat = DateFormat('dd MMM yyyy', 'it_IT');
 
   static const BoxShadow _cardShadow = BoxShadow(
-    color: Color(0x14000000), // Colors.black con opacity 0.08 in hex
+    color: Color(0x14000000),
     blurRadius: 12,
     offset: Offset(0, 4),
   );
@@ -53,7 +53,6 @@ class TripCard extends StatelessWidget {
                 ),
               ),
 
-              // --- Overlay scuro in basso per leggibilità ---
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -73,14 +72,12 @@ class TripCard extends StatelessWidget {
                 ),
               ),
 
-              // --- Badge stato in alto a sinistra ---
               Positioned(
                 top: 12,
                 left: 12,
                 child: _buildStateBadge(giorni),
               ),
 
-              // --- Bottone elimina in alto a destra ---
               Positioned(
                 top: 4,
                 right: 4,
@@ -91,7 +88,6 @@ class TripCard extends StatelessWidget {
                 ),
               ),
 
-              // --- Testo in basso ---
               Positioned(
                 bottom: 12,
                 left: 16,
@@ -187,8 +183,6 @@ class TripCard extends StatelessWidget {
     );
   }
 
-  // Genera un gradiente diverso in base alla destinazione
-  // (deterministico: stessa città = stesso colore)
   List<Color> _getGradientColors(String destinazione) {
     final palettes = [
       [const Color(0xFF1E3A8A), const Color(0xFF3B82F6)],

@@ -88,7 +88,6 @@ class HomeViewModel extends ChangeNotifier {
     try {
       await _viaggioRepo.elimina(userId, viaggioId);
 
-      // 2. Spegni la sveglia sul telefono
       final notifService = NotificationService();
       await notifService.cancellaNotifica(notifService.idDaViaggioId(viaggioId));
     } catch (e) {

@@ -17,7 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .any((info) => info.providerId == 'password') ??
       false;
 
-  // ── HELPER DECORATION ─────────────────────────────────────────
+  //  HELPER DECORATION
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── CAMBIO EMAIL ──────────────────────────────────────────────
+  // CAMBIO EMAIL
   Future<void> _cambiaEmail() async {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
@@ -136,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ── CAMBIO PASSWORD: STEP 1 (verifica identità) ───────────────
+  //  CAMBIO PASSWORD: STEP 1 (verifica identità) 
   Future<void> _cambiaPassword() async {
     final vecchiaController = TextEditingController();
 
@@ -226,7 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── CAMBIO PASSWORD: STEP 2 (nuova password) ──────────────────
+  //  CAMBIO PASSWORD: STEP 2 (nuova password) 
   Future<void> _cambiaPasswordStep2(String vecchiaPassword) async {
     final nuovaController = TextEditingController();
     final confermaController = TextEditingController();
@@ -368,7 +368,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ── BUILD ─────────────────────────────────────────────────────
+  //  BUILD 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -408,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── WIDGET HELPERS ────────────────────────────────────────────
+  //  WIDGET HELPERS 
   Widget _buildSectionLabel(String title) {
     return Text(
       title,

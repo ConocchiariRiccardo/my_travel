@@ -49,9 +49,6 @@ class WorkspaceService {
     final lat = posizione.latitude;
     final lon = posizione.longitude;
 
-    // OTTMIZZAZIONE ARCHITETTO: Filtro Qualità
-    // Le biblioteche e i coworking vengono presi sempre.
-    // I caffè vengono presi SOLO se hanno il tag "internet_access" compilato.
     final query = '''
 [out:json][timeout:25];
 (
@@ -98,8 +95,6 @@ out center;
       for (final e in elements) {
         final tags = e['tags'] as Map<String, dynamic>? ?? {};
 
-        // OTTMIZZAZIONE ARCHITETTO: Non scartiamo i luoghi senza nome!
-        // Diamo un nome generico in base alla loro categoria.
         String? nome = tags['name'] as String?;
         if (nome == null || nome.trim().isEmpty) {
           if (tags['amenity'] == 'cafe') {
@@ -118,7 +113,7 @@ out center;
           elLat = (e['lat'] as num?)?.toDouble();
           elLon = (e['lon'] as num?)?.toDouble();
         } else {
-          // way: le coordinate sono nel sotto-oggetto "center"
+          
           final center = e['center'] as Map<String, dynamic>?;
           elLat = (center?['lat'] as num?)?.toDouble();
           elLon = (center?['lon'] as num?)?.toDouble();
@@ -129,7 +124,7 @@ out center;
 
         final String id = '${e['type']}_${e['id']}';
 
-        // Determina il tipo di luogo dai tag OSM
+        // Determina il tipo di luogo 
         String tipo = 'cafe';
         if (tags['amenity'] == 'library') tipo = 'library';
         if (tags['office'] == 'coworking' ||

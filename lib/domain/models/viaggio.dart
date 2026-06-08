@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Viaggio {
   final String id;
-  final String userId; // chi ha creato il viaggio
+  final String userId; 
   final String nome;
   final String destinazione;
   final DateTime dataInizio;
   final DateTime dataFine;
   final bool isCompletato;
-  final String? immagineCopertinaUrl; // opzionale, per le card
+  final String? immagineCopertinaUrl; 
 
   const Viaggio({
     required this.id,
@@ -63,7 +63,7 @@ class Viaggio {
     );
   }
 
-  // Crea una copia modificata (utile per update parziali)
+  // Crea una copia modificata 
   Viaggio copyWith({
     String? nome,
     String? destinazione,

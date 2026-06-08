@@ -35,7 +35,7 @@ class NotificationService {
     _inizializzato = true;
   }
 
-  /// Chiede il permesso per le notifiche (Android 13+)
+  /// Chiede il permesso per le notifiche 
   Future<bool> richiediPermesso() async {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -43,7 +43,7 @@ class NotificationService {
     return granted ?? false;
   }
 
-  /// Schedula una notifica il giorno prima della partenza alle 9:00
+  /// Schedula una notifica 
   Future<void> schedulaNotificaPartenza({
     required String userId,
     required int id,
@@ -110,7 +110,6 @@ class NotificationService {
     await _plugin.cancelAll();
   }
 
-  /// Genera un id intero deterministico da un viaggioId stringa
   int idDaViaggioId(String viaggioId) {
     return viaggioId.hashCode.abs() % 100000;
   }

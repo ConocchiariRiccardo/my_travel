@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-/// Risultato dell'estrazione OCR dallo scontrino
 class OcrResult {
   final String descrizione;
   final double? importo;
@@ -36,7 +35,7 @@ class OcrService {
         ? 'image/png'
         : 'image/jpeg';
 
-    // Payload conforme alle specifiche REST di Gemini v1
+    // Payload conforme alle specifiche REST di Gemini v2
     final payload = jsonEncode({
       'contents': [
         {
@@ -81,7 +80,7 @@ SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
 
-    // Naviga la struttura di risposta REST di Gemini v1
+    // Naviga la struttura di risposta REST di Gemini v2
     final candidates = decoded['candidates'] as List<dynamic>?;
     if (candidates == null || candidates.isEmpty) {
       throw Exception('Nessuna risposta generata dal modello AI.');
@@ -95,14 +94,12 @@ SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
       throw Exception('Risposta vuota dall\'AI.');
     }
 
-    // Pulizia difensiva: rimuove eventuali backtick markdown
-    // nel caso il modello li includa nonostante il response_mime_type
     final testoJson =
         testoRisposta.replaceAll('```json', '').replaceAll('```', '').trim();
 
     final datiEstratti = jsonDecode(testoJson) as Map<String, dynamic>;
 
-    // Parse chirurgico della data
+    // Parse della data
     DateTime? dataEstratta;
     final dataRaw = datiEstratti['data'];
     if (dataRaw != null && dataRaw.toString() != 'null') {
@@ -113,7 +110,7 @@ SOLO un oggetto JSON valido con questi campi esatti, senza testo aggiuntivo:
       }
     }
 
-    // Parse chirurgico dell'importo
+    // Parse dell'importo
     double? importoEstratto;
     final importoRaw = datiEstratti['importo'];
     if (importoRaw != null) {

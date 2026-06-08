@@ -5,7 +5,7 @@ class Spesa {
   final String viaggioId;
   final String descrizione;
   final double importo;
-  final String categoria;   // es. "Trasporto", "Pasto", "Alloggio"
+  final String categoria;   
   final DateTime data;
   final String? immagineScontrinoUrl;
 
