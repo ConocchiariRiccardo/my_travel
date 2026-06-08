@@ -19,7 +19,7 @@ class OcrResult {
 class OcrService {
   static const String _apiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AIzaSyBnogFvG6LxxAhAYNYjHRpJELOjCLJ8vH0',
+    defaultValue: '',
   );
 
   static const String _endpoint =
