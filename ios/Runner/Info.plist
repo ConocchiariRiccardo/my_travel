@@ -77,5 +77,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>MyTravel usa la fotocamera per scansionare gli scontrini</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MyTravel accede alla galleria per caricare le foto degli scontrini</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MyTravel salva le foto nella galleria</string>
 </dict>
 </plist>
