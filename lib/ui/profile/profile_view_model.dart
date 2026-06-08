@@ -190,15 +190,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  // Metodi segnaposto per le nuove funzionalità
-  void navigaPasswordSicurezza() => debugPrint("Navigazione a Sicurezza");
-  void navigaNotifiche() => debugPrint("Navigazione a Notifiche");
-  void navigaLingua() => debugPrint("Navigazione a Lingua");
-  void navigaSuDiNoi() => debugPrint("Navigazione a Su di noi");
-  void navigaTema() => debugPrint("Navigazione a Tema");
-  void navigaHelpCenter() => debugPrint("Navigazione a Help Center");
-  void navigaContattaci() => debugPrint("Navigazione a Contattaci");
-
   void clearMessages() {
     _errorMessage = null;
     _successMessage = null;

@@ -86,10 +86,6 @@ out center;
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final elements = decoded['elements'] as List<dynamic>? ?? [];
 
-      // DEBUG: Stampiamo in console quanti risultati veri ci manda OSM
-      debugPrint(
-          '🌍 OVERPASS API: Ricevuti ${elements.length} elementi grezzi da OSM.');
-
       final List<WorkspacePlace> risultati = [];
 
       for (final e in elements) {
@@ -113,7 +109,6 @@ out center;
           elLat = (e['lat'] as num?)?.toDouble();
           elLon = (e['lon'] as num?)?.toDouble();
         } else {
-          
           final center = e['center'] as Map<String, dynamic>?;
           elLat = (center?['lat'] as num?)?.toDouble();
           elLon = (center?['lon'] as num?)?.toDouble();
@@ -124,7 +119,7 @@ out center;
 
         final String id = '${e['type']}_${e['id']}';
 
-        // Determina il tipo di luogo 
+        // Determina il tipo di luogo
         String tipo = 'cafe';
         if (tags['amenity'] == 'library') tipo = 'library';
         if (tags['office'] == 'coworking' ||

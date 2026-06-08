@@ -84,7 +84,6 @@ class WorkspaceViewModel extends ChangeNotifier {
           desiredAccuracy: LocationAccuracy.high,
         ).timeout(const Duration(seconds: 15));
       } catch (e) {
-        debugPrint('WorkspaceViewModel location fallback: $e');
         posizione = await Geolocator.getLastKnownPosition();
       }
 
@@ -98,7 +97,6 @@ class WorkspaceViewModel extends ChangeNotifier {
           posizione: _posizioneUtente!,
         );
       } catch (e) {
-        debugPrint('WorkspaceViewModel service fallback: $e');
         _luoghi = [];
       }
 
@@ -108,7 +106,6 @@ class WorkspaceViewModel extends ChangeNotifier {
       _stato = WorkspaceStato.successo;
       notifyListeners();
     } catch (e) {
-      debugPrint('WorkspaceViewModel ERROR: $e');
       _messaggioErrore =
           'Impossibile trovare workspace nelle vicinanze. Riprova.';
       _stato = WorkspaceStato.errore;

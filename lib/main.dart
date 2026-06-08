@@ -35,9 +35,7 @@ Future<void> main() async {
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
-  } catch (e) {
-    debugPrint("Firebase già inizializzato, ignoro e vado avanti.");
-  }
+  } catch (_) {}
 
   await initializeDateFormatting('it_IT', null);
   await NotificationService().inizializza();
